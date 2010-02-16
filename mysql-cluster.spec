@@ -44,7 +44,7 @@
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
 Version:	7.0.12
-Release:	%mkrel 0.0.1
+Release:	%mkrel 0.0.2
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
@@ -343,6 +343,7 @@ perl -pi -e 's/status mysqld\b/status mysqld-cluster/g;s,(/var/lock/subsys/mysql
 
 # mysqld-cluster needs special treatment running under the instance manager...
 perl -pi -e "s|--default-mysqld-path=%{_sbindir}/mysqld|--default-mysqld-path=%{_sbindir}/mysqld-cluster|g"  %{buildroot}%{_initrddir}/mysqld-cluster
+perl -pi -e "s|--mysqld=mysqld|--mysqld=mysqld-cluster|g" %{buildroot}%{_initrddir}/mysqld-cluster
 
 # install configuration files
 install -m0644 Mandriva/mysqld.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/mysqld
@@ -600,4 +601,3 @@ rm -rf %{buildroot}
 %defattr(-,root,root)
 %doc ChangeLog
 %attr(0755,root,root) %{_libdir}/*.so.*
-
