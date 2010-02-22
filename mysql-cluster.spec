@@ -44,7 +44,7 @@
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
 Version:	7.0.12
-Release:	%mkrel 0.0.3
+Release:	%mkrel 1
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
@@ -372,7 +372,7 @@ echo "#" > %{buildroot}%{_sysconfdir}/ndb_cpcd.conf
 echo "#" > %{buildroot}/var/lib/mysql/Ndb.cfg
 
 # house cleaning
-rm -f %{buildroot}%{_datadir}/info/dir
+rm -rf %{buildroot}%{_datadir}/info
 rm -f %{buildroot}%{_bindir}/make_win_src_distribution
 rm -f %{buildroot}%{_bindir}/make_win_binary_distribution
 rm -f %{buildroot}%{_datadir}/mysql/*.spec
@@ -556,7 +556,6 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_bindir}/replace
 %attr(0755,root,root) %{_bindir}/resolveip
 %attr(0755,root,root) %{_bindir}/resolve_stack_dump
-%{_infodir}/mysql.info*
 %attr(0711,%{muser},%{muser}) %dir /var/lib/mysql-cluster
 %attr(0711,%{muser},%{muser}) %dir /var/lib/mysql
 %attr(0711,%{muser},%{muser}) %dir /var/lib/mysql/mysql
