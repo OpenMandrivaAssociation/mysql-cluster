@@ -44,7 +44,7 @@
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
 Version:	7.0.12
-Release:	%mkrel 0.0.2
+Release:	%mkrel 0.0.3
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
@@ -66,6 +66,8 @@ Patch6:		mysql-errno.patch
 Patch11:	mysql-logrotate.diff
 Patch12:	mysql-initscript.diff
 Patch14:	mysql-5.1.30-use_-avoid-version_for_plugins.diff
+Patch100:	mysql-cluster-gpl-7.0.12-CVE-2008-7247.diff
+Patch101:	mysql-cluster-gpl-7.0.12-CVE-2009-4030.diff
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 Requires(pre): rpm-helper
@@ -172,6 +174,9 @@ applications need to dynamically load and use MySQL.
 %patch11 -p0 -b .logrotate
 %patch12 -p0 -b .initscript
 %patch14 -p1 -b .use_-avoid-version_for_plugins
+
+%patch100 -p0 -b .CVE-2008-7247
+%patch101 -p0 -b .CVE-2009-4030
 
 # fix annoyances
 perl -pi -e "s|AC_PROG_RANLIB|AC_PROG_LIBTOOL|g" configure*
