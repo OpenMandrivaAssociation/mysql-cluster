@@ -44,7 +44,7 @@
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
 Version:	7.0.12
-Release:	%mkrel 1
+Release:	%mkrel 2
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
