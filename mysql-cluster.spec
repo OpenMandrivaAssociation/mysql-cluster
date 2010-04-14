@@ -43,12 +43,12 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.0.12
-Release:	%mkrel 2
+Version:	7.0.13
+Release:	%mkrel 1
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
-Source0:	mysql-cluster-gpl-%{version}.tar.gz
+Source0:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.0/mysql-cluster-gpl-%{version}.tar.gz
 Source3:	mysqld.sysconfig
 Source4:	mysqld-ndbd.init
 Source5:	mysqld-ndb.sysconfig
@@ -400,6 +400,14 @@ rm -f %{buildroot}%{_datadir}/aclocal/mysql.m4
 rm -rf %{buildroot}%{_datadir}/sql-bench
 rm -rf %{buildroot}%{_datadir}/mysql-test
 rm -f %{buildroot}%{_bindir}/mysql_client_test
+rm -f %{buildroot}%{_mandir}/man1/comp_err.1*
+rm -f %{buildroot}%{_mandir}/man1/mysql_config.1*
+rm -f %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
+rm -f %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
+rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
+rm -f %{buildroot}%{_mandir}/man1/mysql_client_test_embedded.1*
+rm -f %{buildroot}%{_mandir}/man1/mysqltest.1*
+rm -f %{buildroot}%{_mandir}/man1/mysqltest_embedded.1*
 
 %pre common
 # delete the mysql group if no mysql user is found, before adding the user
@@ -470,12 +478,10 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_libdir}/mysql/plugin/ha_archive.so
 %attr(0755,root,root) %{_libdir}/mysql/plugin/ha_blackhole.so
 %attr(0755,root,root) %{_libdir}/mysql/plugin/ha_innodb.so
-
 %attr(0755,root,root) %{_initrddir}/mysqld-ndbd
 %attr(0644,root,root) %config(noreplace,missingok) %{_sysconfdir}/sysconfig/mysqld-ndbd
 %attr(0755,root,root) %{_sbindir}/ndbd
 %attr(0755,root,root) %{_sbindir}/ndbmtd
-
 %ghost %attr(0644,root,root) %config(noreplace,missingok) %{_sysconfdir}/ndb_cpcd.conf
 %ghost %attr(0644,root,root) %config(noreplace,missingok) /var/lib/mysql/Ndb.cfg
 %attr(0644,root,root) %config(noreplace,missingok) /var/lib/mysql-cluster/config.ini
@@ -485,9 +491,7 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_initrddir}/mysqld-ndb_mgmd
 %attr(0755,root,root) %{_sbindir}/ndb_mgmd
 %attr(0755,root,root) %{_sbindir}/ndb_cpcd
-%attr(0755,root,root) %{_bindir}/ndb_mgm
 %attr(0755,%{muser},%{muser}) %dir %{_var}/run/ndb_cpcd
-
 %attr(0755,root,root) %{_bindir}/ndb_print_schema_file
 %attr(0755,root,root) %{_bindir}/ndb_print_sys_file
 %attr(0755,root,root) %{_bindir}/ndb_config
@@ -503,10 +507,30 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_bindir}/ndb_test_platform
 %attr(0755,root,root) %{_bindir}/ndb_waiter
 %attr(0755,root,root) %{_bindir}/ndbd_redo_log_reader
-
 %attr(0755,root,root) %{_bindir}/ndb_drop_index
 %attr(0755,root,root) %{_bindir}/ndb_drop_table
 %attr(0755,root,root) %{_bindir}/ndb_delete_all
+%attr(0644,root,root) %{_mandir}/man1/ndb_config.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_cpcd.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_delete_all.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_desc.1*
+%attr(0644,root,root) %{_mandir}/man1/ndbd_redo_log_reader.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_drop_index.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_drop_table.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_error_reporter.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_mgm.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_print_backup_file.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_print_schema_file.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_print_sys_file.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_restore.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_select_all.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_select_count.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_show_tables.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_size.pl.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_waiter.1*
+%attr(0644,root,root) %{_mandir}/man8/ndbd.8*
+%attr(0644,root,root) %{_mandir}/man8/ndb_mgmd.8*
+%attr(0644,root,root) %{_mandir}/man8/ndbmtd.8*
 
 %files client
 %defattr(-,root,root)
@@ -526,6 +550,19 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_bindir}/mysqlshow
 %attr(0755,root,root) %{_bindir}/mysqlslap
 %attr(0755,root,root) %{_bindir}/mysql_waitpid
+%attr(0644,root,root) %{_mandir}/man1/msql2mysql.1*
+%attr(0644,root,root) %{_mandir}/man1/myisam_ftdump.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlaccess.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqladmin.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlbinlog.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlcheck.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqldump.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqldumpslow.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_find_rows.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlimport.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlshow.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_waitpid.1*
 
 %files common
 %defattr(-,root,root) 
@@ -599,7 +636,33 @@ rm -rf %{buildroot}
 %{_datadir}/mysql/swedish
 %{_datadir}/mysql/ukrainian
 %{_datadir}/mysql/swig
+%attr(0644,root,root) %{_mandir}/man1/innochecksum.1*
+%attr(0644,root,root) %{_mandir}/man1/myisamchk.1*
+%attr(0644,root,root) %{_mandir}/man1/myisamlog.1*
+%attr(0644,root,root) %{_mandir}/man1/myisampack.1*
+%attr(0644,root,root) %{_mandir}/man1/my_print_defaults.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlbug.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_convert_table_format.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqld_multi.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqld_safe.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_fix_extensions.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_fix_privilege_tables.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlhotcopy.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_install_db.1*
 %attr(0644,root,root) %{_mandir}/man1/mysqlman.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_secure_installation.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql.server.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_setpermission.1*
+%attr(0644,root,root) %{_mandir}/man1/mysqlslap.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_tzinfo_to_sql.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_upgrade.1*
+%attr(0644,root,root) %{_mandir}/man1/mysql_zap.1*
+%attr(0644,root,root) %{_mandir}/man1/perror.1*
+%attr(0644,root,root) %{_mandir}/man1/replace.1*
+%attr(0644,root,root) %{_mandir}/man1/resolveip.1*
+%attr(0644,root,root) %{_mandir}/man1/resolve_stack_dump.1*
+%attr(0644,root,root) %{_mandir}/man8/mysqld.8*
+%attr(0644,root,root) %{_mandir}/man8/mysqlmanager.8*
 
 %files -n %{libname}
 %defattr(-,root,root)
