@@ -43,7 +43,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.0.13
+Version:	7.1.3
 Release:	%mkrel 1
 Group:		Databases
 License:	GPL
@@ -67,7 +67,11 @@ Patch11:	mysql-logrotate.diff
 Patch12:	mysql-initscript.diff
 Patch14:	mysql-5.1.30-use_-avoid-version_for_plugins.diff
 Patch100:	mysql-cluster-gpl-7.0.12-CVE-2008-7247.diff
-Patch101:	mysql-cluster-gpl-7.0.12-CVE-2009-4030.diff
+Patch101:	mysql-cluster-gpl-7.1.3-CVE-2010-1621.diff
+Patch102:	mysql-cluster-gpl-7.1.3-CVE-2010-1626.diff
+Patch103:	mysql-cluster-gpl-7.1.3-CVE-2010-1850.diff
+Patch104:	mysql-cluster-gpl-7.1.3-CVE-2010-1848.diff
+Patch105:	mysql-cluster-gpl-7.1.3-CVE-2010-1849.diff
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 Requires(pre): rpm-helper
@@ -97,6 +101,7 @@ BuildRequires:	zlib-devel
 BuildRequires:	dos2unix
 BuildRequires:	multiarch-utils >= 1.0.3
 BuildRequires:	xfs-devel
+BuildRequires:	java-1.6.0-openjdk-devel
 BuildConflicts:	edit-devel
 Conflicts:	mysql < 5.1.43
 Conflicts:	mysql-common-core < 5.1.43
@@ -163,6 +168,13 @@ Group:		System/Libraries
 This package contains the shared libraries (*.so*) which certain languages and
 applications need to dynamically load and use MySQL.
 
+%package	java
+Summary:	MySQL - ClusterJ
+Group:		Development/Java
+
+%description	java
+This package contains ClusterJ java components.
+
 %prep
 
 %setup -q -n mysql-cluster-gpl-%{version}
@@ -176,7 +188,11 @@ applications need to dynamically load and use MySQL.
 %patch14 -p1 -b .use_-avoid-version_for_plugins
 
 %patch100 -p0 -b .CVE-2008-7247
-%patch101 -p0 -b .CVE-2009-4030
+%patch101 -p1 -b .CVE-2010-1621
+%patch102 -p1 -b .CVE-2010-1626
+%patch103 -p0 -b .CVE-2010-1850
+%patch104 -p1 -b .CVE-2010-1848
+%patch105 -p1 -b .CVE-2010-1849
 
 # fix annoyances
 perl -pi -e "s|AC_PROG_RANLIB|AC_PROG_LIBTOOL|g" configure*
@@ -330,7 +346,7 @@ install -d %{buildroot}%{_var}/log/mysqld
 install -d %{buildroot}/var/lib/mysql/{mysql,test}
 install -d %{buildroot}/var/lib/mysql-cluster
 
-%makeinstall_std benchdir_root=%{_datadir} testdir=%{_datadir}/mysql-test
+%makeinstall_std benchdir_root=%{_datadir} testdir=%{_datadir}/mysql-test clusterjdir=%{_datadir}/mysql/java clusterj_apidir=%{_datadir}/mysql/java
 
 # nuke one useless plugin
 rm -f %{buildroot}%{_libdir}/mysql/plugin/ha_example*
@@ -635,7 +651,6 @@ rm -rf %{buildroot}
 %{_datadir}/mysql/spanish
 %{_datadir}/mysql/swedish
 %{_datadir}/mysql/ukrainian
-%{_datadir}/mysql/swig
 %attr(0644,root,root) %{_mandir}/man1/innochecksum.1*
 %attr(0644,root,root) %{_mandir}/man1/myisamchk.1*
 %attr(0644,root,root) %{_mandir}/man1/myisamlog.1*
@@ -663,6 +678,10 @@ rm -rf %{buildroot}
 %attr(0644,root,root) %{_mandir}/man1/resolve_stack_dump.1*
 %attr(0644,root,root) %{_mandir}/man8/mysqld.8*
 %attr(0644,root,root) %{_mandir}/man8/mysqlmanager.8*
+
+%files java
+%defattr(-,root,root)
+%{_datadir}/mysql/java
 
 %files -n %{libname}
 %defattr(-,root,root)
