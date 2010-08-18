@@ -43,7 +43,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.3
+Version:	7.1.5
 Release:	%mkrel 1
 Group:		Databases
 License:	GPL
@@ -67,11 +67,6 @@ Patch11:	mysql-logrotate.diff
 Patch12:	mysql-initscript.diff
 Patch14:	mysql-5.1.30-use_-avoid-version_for_plugins.diff
 Patch100:	mysql-cluster-gpl-7.0.12-CVE-2008-7247.diff
-Patch101:	mysql-cluster-gpl-7.1.3-CVE-2010-1621.diff
-Patch102:	mysql-cluster-gpl-7.1.3-CVE-2010-1626.diff
-Patch103:	mysql-cluster-gpl-7.1.3-CVE-2010-1850.diff
-Patch104:	mysql-cluster-gpl-7.1.3-CVE-2010-1848.diff
-Patch105:	mysql-cluster-gpl-7.1.3-CVE-2010-1849.diff
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 Requires(pre): rpm-helper
@@ -188,11 +183,6 @@ This package contains ClusterJ java components.
 %patch14 -p1 -b .use_-avoid-version_for_plugins
 
 %patch100 -p0 -b .CVE-2008-7247
-%patch101 -p1 -b .CVE-2010-1621
-%patch102 -p1 -b .CVE-2010-1626
-%patch103 -p0 -b .CVE-2010-1850
-%patch104 -p1 -b .CVE-2010-1848
-%patch105 -p1 -b .CVE-2010-1849
 
 # fix annoyances
 perl -pi -e "s|AC_PROG_RANLIB|AC_PROG_LIBTOOL|g" configure*
