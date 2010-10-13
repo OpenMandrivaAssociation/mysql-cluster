@@ -43,7 +43,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.5
+Version:	7.1.8
 Release:	%mkrel 1
 Group:		Databases
 License:	GPL
@@ -484,6 +484,7 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_libdir}/mysql/plugin/ha_archive.so
 %attr(0755,root,root) %{_libdir}/mysql/plugin/ha_blackhole.so
 %attr(0755,root,root) %{_libdir}/mysql/plugin/ha_innodb.so
+%attr(0755,root,root) %{_libdir}/mysql/plugin/ha_innodb_plugin.so
 %attr(0755,root,root) %{_initrddir}/mysqld-ndbd
 %attr(0644,root,root) %config(noreplace,missingok) %{_sysconfdir}/sysconfig/mysqld-ndbd
 %attr(0755,root,root) %{_sbindir}/ndbd
