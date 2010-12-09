@@ -43,7 +43,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.8
+Version:	7.1.9a
 Release:	%mkrel 1
 Group:		Databases
 License:	GPL
