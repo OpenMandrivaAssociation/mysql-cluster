@@ -44,7 +44,7 @@
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
 Version:	7.1.9a
-Release:	%mkrel 1
+Release:	%mkrel 2
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
@@ -80,7 +80,7 @@ Requires(postun): mysql-cluster-client = %{version}-%{release}
 Requires:	mysql-cluster-common = %{version}-%{release}
 Requires:	mysql-cluster-client = %{version}-%{release}
 BuildRequires:	autoconf2.5
-BuildRequires:	automake1.7
+BuildRequires:	automake
 BuildRequires:	bison
 BuildRequires:	doxygen
 BuildRequires:	glibc-devel
