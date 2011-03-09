@@ -43,12 +43,13 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.9a
-Release:	%mkrel 2
+Version:	7.1.10
+Release:	%mkrel 1
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
 Source0:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.0/mysql-cluster-gpl-%{version}.tar.gz
+Source1:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.0/mysql-cluster-gpl-%{version}.tar.gz.asc
 Source3:	mysqld.sysconfig
 Source4:	mysqld-ndbd.init
 Source5:	mysqld-ndb.sysconfig
@@ -499,13 +500,18 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_sbindir}/ndb_mgmd
 %attr(0755,root,root) %{_sbindir}/ndb_cpcd
 %attr(0755,%{muser},%{muser}) %dir %{_var}/run/ndb_cpcd
-%attr(0755,root,root) %{_bindir}/ndb_print_schema_file
-%attr(0755,root,root) %{_bindir}/ndb_print_sys_file
 %attr(0755,root,root) %{_bindir}/ndb_config
+%attr(0755,root,root) %{_bindir}/ndb_delete_all
 %attr(0755,root,root) %{_bindir}/ndb_desc
+%attr(0755,root,root) %{_bindir}/ndbd_redo_log_reader
+%attr(0755,root,root) %{_bindir}/ndb_drop_index
+%attr(0755,root,root) %{_bindir}/ndb_drop_table
 %attr(0755,root,root) %{_bindir}/ndb_error_reporter
 %attr(0755,root,root) %{_bindir}/ndb_mgm
 %attr(0755,root,root) %{_bindir}/ndb_print_backup_file
+%attr(0755,root,root) %{_bindir}/ndb_print_file
+%attr(0755,root,root) %{_bindir}/ndb_print_schema_file
+%attr(0755,root,root) %{_bindir}/ndb_print_sys_file
 %attr(0755,root,root) %{_bindir}/ndb_restore
 %attr(0755,root,root) %{_bindir}/ndb_select_all
 %attr(0755,root,root) %{_bindir}/ndb_select_count
@@ -513,10 +519,6 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_bindir}/ndb_size.pl
 %attr(0755,root,root) %{_bindir}/ndb_test_platform
 %attr(0755,root,root) %{_bindir}/ndb_waiter
-%attr(0755,root,root) %{_bindir}/ndbd_redo_log_reader
-%attr(0755,root,root) %{_bindir}/ndb_drop_index
-%attr(0755,root,root) %{_bindir}/ndb_drop_table
-%attr(0755,root,root) %{_bindir}/ndb_delete_all
 %attr(0644,root,root) %{_mandir}/man1/ndb_config.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_cpcd.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_delete_all.1*
