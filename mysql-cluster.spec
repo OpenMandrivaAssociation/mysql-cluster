@@ -43,13 +43,13 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.10
+Version:	7.1.13
 Release:	%mkrel 1
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
-Source0:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.0/mysql-cluster-gpl-%{version}.tar.gz
-Source1:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.0/mysql-cluster-gpl-%{version}.tar.gz.asc
+Source0:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.1/mysql-cluster-gpl-%{version}.tar.gz
+Source1:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.1/mysql-cluster-gpl-%{version}.tar.gz.asc
 Source3:	mysqld.sysconfig
 Source4:	mysqld-ndbd.init
 Source5:	mysqld-ndb.sysconfig
