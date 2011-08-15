@@ -43,7 +43,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.13
+Version:	7.1.15
 Release:	%mkrel 1
 Group:		Databases
 License:	GPL
@@ -507,6 +507,7 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_bindir}/ndb_drop_index
 %attr(0755,root,root) %{_bindir}/ndb_drop_table
 %attr(0755,root,root) %{_bindir}/ndb_error_reporter
+%attr(0755,root,root) %{_bindir}/ndb_index_stat
 %attr(0755,root,root) %{_bindir}/ndb_mgm
 %attr(0755,root,root) %{_bindir}/ndb_print_backup_file
 %attr(0755,root,root) %{_bindir}/ndb_print_file
