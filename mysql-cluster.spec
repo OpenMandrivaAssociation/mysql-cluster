@@ -80,13 +80,12 @@ Requires(postun): mysql-cluster-common = %{version}-%{release}
 Requires(postun): mysql-cluster-client = %{version}-%{release}
 Requires:	mysql-cluster-common = %{version}-%{release}
 Requires:	mysql-cluster-client = %{version}-%{release}
-BuildRequires:	autoconf2.5
-BuildRequires:	automake
+BuildRequires:	autoconf automake libtool
 BuildRequires:	bison
 BuildRequires:	doxygen
 BuildRequires:	glibc-devel
 BuildRequires:	libstdc++-devel
-BuildRequires:	libtermcap-devel
+BuildRequires:	termcap-devel
 BuildRequires:	ncurses-devel
 BuildRequires:	openssl-devel
 BuildRequires:	python
@@ -95,7 +94,6 @@ BuildRequires:	tetex
 BuildRequires:	texinfo
 BuildRequires:	zlib-devel
 BuildRequires:	dos2unix
-BuildRequires:	multiarch-utils >= 1.0.3
 BuildRequires:	xfs-devel
 BuildRequires:	java-1.6.0-openjdk-devel
 BuildConflicts:	edit-devel
