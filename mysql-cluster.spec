@@ -43,8 +43,8 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.15
-Release:	%mkrel 1
+Version:	7.1.18
+Release:	1
 Group:		Databases
 License:	GPL
 URL:		http://www.mysql.com
@@ -106,7 +106,6 @@ Conflicts:	mysql-ndb-extra < 5.1.43
 Conflicts:	mysql-ndb-management < 5.1.43
 Conflicts:	mysql-ndb-storage < 5.1.43
 Conflicts:	mysql-ndb-tools < 5.1.43
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description
 The MySQL(TM) software delivers a very fast, multi-threaded, multi-user,
@@ -465,19 +464,7 @@ if [ "$1" = "0" ]; then
     fi
 fi
 
-%if %mdkversion < 200900
-%post -n %{libname} -p /sbin/ldconfig
-%endif
-
-%if %mdkversion < 200900
-%postun -n %{libname} -p /sbin/ldconfig
-%endif
-
-%clean
-rm -rf %{buildroot}
-
 %files
-%defattr(-,root,root)
 %attr(0755,root,root) %{_initrddir}/mysqld-cluster
 %attr(0755,root,root) %{_sbindir}/mysqld-cluster
 %attr(0755,root,root) %{_sbindir}/mysqlmanager
@@ -508,6 +495,7 @@ rm -rf %{buildroot}
 %attr(0755,root,root) %{_bindir}/ndb_drop_table
 %attr(0755,root,root) %{_bindir}/ndb_error_reporter
 %attr(0755,root,root) %{_bindir}/ndb_index_stat
+%attr(0755,root,root) %{_bindir}/ndbinfo_select_all
 %attr(0755,root,root) %{_bindir}/ndb_mgm
 %attr(0755,root,root) %{_bindir}/ndb_print_backup_file
 %attr(0755,root,root) %{_bindir}/ndb_print_file
@@ -543,7 +531,6 @@ rm -rf %{buildroot}
 %attr(0644,root,root) %{_mandir}/man8/ndbmtd.8*
 
 %files client
-%defattr(-,root,root)
 %attr(0755,root,root) %{_bindir}/msql2mysql
 %attr(0755,root,root) %{_bindir}/mysql
 %attr(0755,root,root) %{_bindir}/mysqlaccess
@@ -575,7 +562,6 @@ rm -rf %{buildroot}
 %attr(0644,root,root) %{_mandir}/man1/mysql_waitpid.1*
 
 %files common
-%defattr(-,root,root) 
 %doc README COPYING support-files/*.cnf
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/mysqld
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/my.cnf
@@ -674,10 +660,8 @@ rm -rf %{buildroot}
 %attr(0644,root,root) %{_mandir}/man8/mysqlmanager.8*
 
 %files java
-%defattr(-,root,root)
 %{_datadir}/mysql/java
 
 %files -n %{libname}
-%defattr(-,root,root)
 %doc ChangeLog
 %attr(0755,root,root) %{_libdir}/*.so.*
