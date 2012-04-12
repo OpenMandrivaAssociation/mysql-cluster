@@ -1,3 +1,6 @@
+%define _build_pkgcheck_set %{nil}
+%define _build_pkgcheck_srpm %{nil}
+
 %define Werror_cflags %nil
 %define _disable_ld_no_undefined 1
 
@@ -43,7 +46,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.18
+Version:	7.1.20
 Release:	1
 Group:		Databases
 License:	GPL
