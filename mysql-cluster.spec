@@ -97,7 +97,7 @@ BuildRequires:	tetex
 BuildRequires:	texinfo
 BuildRequires:	zlib-devel
 BuildRequires:	dos2unix
-BuildRequires:	xfs-devel
+BuildRequires:	xfsprogs-devel
 BuildRequires:	java-1.6.0-openjdk-devel
 BuildConflicts:	edit-devel
 Conflicts:	mysql < 5.1.43
