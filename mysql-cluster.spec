@@ -46,7 +46,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.20
+Version:	7.1.22
 Release:	1
 Group:		Databases
 License:	GPL
