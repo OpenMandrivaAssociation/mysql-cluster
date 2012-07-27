@@ -46,7 +46,7 @@
 
 Summary:	MySQL - server with extended functionality
 Name: 		mysql-cluster
-Version:	7.1.22
+Version:	7.1.23
 Release:	1
 Group:		Databases
 License:	GPL
@@ -488,6 +488,7 @@ fi
 %attr(0755,root,root) %{_sbindir}/ndb_mgmd
 %attr(0755,root,root) %{_sbindir}/ndb_cpcd
 %attr(0755,%{muser},%{muser}) %dir %{_var}/run/ndb_cpcd
+%attr(0755,root,root) %{_bindir}/ndb_blob_tool
 %attr(0755,root,root) %{_bindir}/ndb_config
 %attr(0755,root,root) %{_bindir}/ndb_delete_all
 %attr(0755,root,root) %{_bindir}/ndb_desc
@@ -509,6 +510,7 @@ fi
 %attr(0755,root,root) %{_bindir}/ndb_size.pl
 %attr(0755,root,root) %{_bindir}/ndb_test_platform
 %attr(0755,root,root) %{_bindir}/ndb_waiter
+%attr(0644,root,root) %{_mandir}/man1/ndb-common-options.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_config.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_cpcd.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_delete_all.1*
@@ -517,6 +519,8 @@ fi
 %attr(0644,root,root) %{_mandir}/man1/ndb_drop_index.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_drop_table.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_error_reporter.1*
+%attr(0644,root,root) %{_mandir}/man1/ndb_index_stat.1*
+%attr(0644,root,root) %{_mandir}/man1/ndbinfo_select_all.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_mgm.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_print_backup_file.1*
 %attr(0644,root,root) %{_mandir}/man1/ndb_print_schema_file.1*
