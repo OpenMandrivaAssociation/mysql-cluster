@@ -1,0 +1,21 @@
+--- scripts/mysql_install_db.sh	2010-01-29 19:05:46.000000000 +0100
++++ scripts/mysql_install_db.sh.oden	2010-02-12 15:13:22.474608788 +0100
+@@ -282,7 +282,8 @@
+   basedir="@prefix@"
+   bindir="@bindir@"
+   extra_bindir="$bindir"
+-  mysqld="@libexecdir@/mysqld"
++  # Use the mysqld-cluster binary by default if the user doesn't specify a binary
++  if test -x "@libexecdir@/mysqld-cluster"; then mysqld="@libexecdir@/mysqld-cluster"; fi
+   pkgdatadir="@pkgdatadir@"
+   scriptdir="@scriptdir@"
+ fi
+@@ -357,7 +358,7 @@
+   if test ! -d $dir
+   then
+     mkdir -p $dir
+-    chmod 700 $dir
++    chmod 711 $dir
+   fi
+   if test -w / -a ! -z "$user"
+   then

@@ -1,0 +1,95 @@
+diff -Naur mysql-5.1.30/config/ac-macros/ssl.m4 mysql-5.1.30.oden/config/ac-macros/ssl.m4
+--- mysql-5.1.30/config/ac-macros/ssl.m4	2008-11-14 17:34:23.000000000 +0100
++++ mysql-5.1.30.oden/config/ac-macros/ssl.m4	2008-11-27 11:51:59.000000000 +0100
+@@ -102,7 +102,7 @@
+   #
+   # Try to link with openSSL libs in <location>
+   #
+-  openssl_libs="-L$location/lib/ -lssl -lcrypto"
++  openssl_libs="-L$location/$MYSQL_LIB -lssl -lcrypto"
+   MYSQL_CHECK_SSL_DIR([$openssl_includes], [$openssl_libs])
+ 
+   if test "$mysql_ssl_found" == "no"
+diff -Naur mysql-5.1.30/config/ac-macros/zlib.m4 mysql-5.1.30.oden/config/ac-macros/zlib.m4
+--- mysql-5.1.30/config/ac-macros/zlib.m4	2008-11-14 17:34:23.000000000 +0100
++++ mysql-5.1.30.oden/config/ac-macros/zlib.m4	2008-11-27 11:49:48.000000000 +0100
+@@ -102,13 +102,13 @@
+         ;;
+       *)
+         # Test for libz using all known library file endings
+-        if test \( -f "$mysql_zlib_dir/lib/libz.a"  -o \
+-                   -f "$mysql_zlib_dir/lib/libz.so" -o \
++        if test \( -f "$mysql_zlib_dir/$MYSQL_LIB/libz.a"  -o \
++                   -f "$mysql_zlib_dir/$MYSQL_LIB/libz.so" -o \
+                    -f "$mysql_zlib_dir/lib/libz.sl" -o \
+                    -f "$mysql_zlib_dir/lib/libz.dylib" \) \
+                 -a -f "$mysql_zlib_dir/include/zlib.h"; then
+           ZLIB_INCLUDES="-I$mysql_zlib_dir/include"
+-          ZLIB_LIBS="-L$mysql_zlib_dir/lib -lz"
++          ZLIB_LIBS="-L$mysql_zlib_dir/$MYSQL_LIB -lz"
+           MYSQL_CHECK_ZLIB_DIR
+         fi
+         if test "x$mysql_cv_compress" != "xyes"; then 
+diff -Naur mysql-5.1.30/configure.in mysql-5.1.30.oden/configure.in
+--- mysql-5.1.30/configure.in	2008-11-14 17:34:23.000000000 +0100
++++ mysql-5.1.30.oden/configure.in	2008-11-27 11:49:48.000000000 +0100
+@@ -551,7 +551,7 @@
+                           upgrade the standard libc installation.],
+  [
+    other_libc_include="$withval/include"
+-   other_libc_lib="$withval/lib"
++   other_libc_lib="$withval/$MYSQL_LIB"
+    with_other_libc="yes"
+    enable_shared="no"
+    all_is_static="yes"
+@@ -884,7 +884,7 @@
+ 
+     if test "$with_libwrap" != "yes"; then
+       CPPFLAGS="${CPPFLAGS} -I$with_libwrap/include"
+-      LDFLAGS="${LDFLAGS} -L$with_libwrap/lib"
++      LDFLAGS="${LDFLAGS} -L$with_libwrap/$MYSQL_LIB"
+     fi
+ 
+     _libs=${LIBS}
+@@ -901,7 +901,7 @@
+         AC_DEFINE([LIBWRAP], [1], [Define if you have -lwrap])
+         AC_DEFINE([HAVE_LIBWRAP], [1], [Define if have -lwrap])
+ 	if test "$with_libwrap" != "yes"; then
+-	    WRAPLIBS="-L${with_libwrap}/lib"
++	    WRAPLIBS="-L${with_libwrap}/$MYSQL_LIB"
+ 	fi
+ 	WRAPLIBS="${WRAPLIBS} -lwrap",
+         AC_MSG_RESULT(no)
+@@ -2466,6 +2466,32 @@
+ 
+ AC_SUBST(tools_dirs)
+ 
++# Check for native library dir name
++case $host in
++*-*-linux*)
++  # Test if the compiler is 64bit
++  echo 'int i;' > conftest.$ac_ext
++  mysql_cv_cc_64bit_output=no
++  if AC_TRY_EVAL(ac_compile); then
++    case `/usr/bin/file conftest.$ac_objext` in
++    *"ELF 64"*)
++      mysql_cv_cc_64bit_output=yes
++      ;;
++    esac
++  fi
++  rm -rf conftest*
++  ;;
++esac
++
++case $host_cpu:$mysql_cv_cc_64bit_output in
++powerpc64:yes | s390x:yes | sparc64:yes | x86_64:yes)
++  MYSQL_LIB="lib64"
++  ;;
++*:*)
++  MYSQL_LIB="lib"
++  ;;
++esac
++
+ #MYSQL_CHECK_CPU
+ 
+ libmysqld_dirs=

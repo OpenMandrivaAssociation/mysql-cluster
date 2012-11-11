@@ -1,0 +1,33 @@
+--- configure.in	2008-12-12 13:50:51.000000000 +0100
++++ configure.in.oden	2008-12-12 13:51:27.000000000 +0100
+@@ -465,6 +465,7 @@
+ # no unprotected single quotes should appear in the expression.
+ AC_PATH_PROG(PS, ps, ps)
+ AC_MSG_CHECKING("how to check if pid exists")
++if test -z "$FIND_PROC"; then
+ PS=$ac_cv_path_PS
+ # Linux style
+ if $PS wwwp $$ 2> /dev/null | grep -- "$0" > /dev/null
+@@ -504,12 +505,14 @@
+       AC_MSG_ERROR([Could not find the right ps and/or grep switches. Which OS is this?  See the Installation chapter in the Reference Manual.])
+   esac
+ fi
++fi
+ AC_SUBST(FIND_PROC)
+ AC_MSG_RESULT("$FIND_PROC")
+ 
+ # Check if a pid is valid
+ AC_PATH_PROG(KILL, kill, kill)
+ AC_MSG_CHECKING("for kill switches")
++if test -z "$CHECK_PID"; then
+ if $ac_cv_path_KILL -0 $$
+ then
+   CHECK_PID="$ac_cv_path_KILL -0 \$\$PID > /dev/null 2> /dev/null"
+@@ -520,6 +523,7 @@
+   AC_MSG_WARN([kill -0 to check for pid seems to fail])
+     CHECK_PID="$ac_cv_path_KILL -s SIGCONT \$\$PID > /dev/null 2> /dev/null"
+ fi
++fi
+ AC_SUBST(CHECK_PID)
+ AC_MSG_RESULT("$CHECK_PID")
+ 

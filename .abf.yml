@@ -1,0 +1,12 @@
+sources:
+  "config.ini:"	8190cc7820a2133f8c6924247ba37a562b907b8b
+  "my.cnf:"	a8b9d92b9abec42984c26836a6e91a61524a23a9
+  "mysql-cluster-gpl-7.1.23.tar.gz:"	20834259ae84817841a746fc09e251caa8752d26
+  "mysql-cluster-gpl-7.1.23.tar.gz.asc:"	e24f1d5f1df1029e4cb70f704353d5c17ff60396
+  "mysqld-ndb_cpcd.init:"	3c93e38ec2a15b1313460f7c7945168779b5905b
+  "mysqld-ndb_cpcd.sysconfig:"	aa27ce130ad05b21dfbdb20b32a7f66c1538a820
+  "mysqld-ndbd.init:"	4126f643a8ef70304f7618927c8a2c0ecbe8df1d
+  "mysqld-ndb_mgmd.init:"	6910f3240349db7da0c772442299c5b57451905c
+  "mysqld-ndb_mgmd.sysconfig:"	00470151319b0976b2b84b0debc7b392ad88e7e5
+  "mysqld-ndb.sysconfig:"	37d95efc939a0174473d78cc9109d704c2badd5e
+  "mysqld.sysconfig:"	6cefb0a7bbe563b07780711506d8c71ef8b840f7

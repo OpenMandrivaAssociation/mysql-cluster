@@ -1,0 +1,13 @@
+--- scripts/mysqldumpslow.sh	2008-01-11 15:43:38.000000000 +0100
++++ scripts/mysqldumpslow.sh.oden	2008-03-31 08:24:49.000000000 +0200
+@@ -35,10 +35,6 @@
+ 
+ unless (@ARGV) {
+     my $defaults   = `my_print_defaults mysqld`;
+-    my $basedir = ($defaults =~ m/--basedir=(.*)/)[0]
+-	or die "Can't determine basedir from 'my_print_defaults mysqld' output: $defaults";
+-    warn "basedir=$basedir\n" if $opt{v};
+-
+     my $datadir = ($defaults =~ m/--datadir=(.*)/)[0];
+     my $slowlog = ($defaults =~ m/--log-slow-queries=(.*)/)[0];
+     if (!$datadir or $opt{i}) {
