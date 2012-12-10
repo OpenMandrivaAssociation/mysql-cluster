@@ -670,3 +670,86 @@ fi
 %files -n %{libname}
 %doc ChangeLog
 %attr(0755,root,root) %{_libdir}/*.so.*
+
+
+%changelog
+* Fri Jul 27 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.23-1
++ Revision: 811213
+- 7.1.23
+
+* Tue Jun 19 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.22-1
++ Revision: 806244
+- 7.1.22
+
+* Thu Apr 12 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.20-1
++ Revision: 790381
+- stupid and useless renamed packages that won't provide the old package name/virtual name..., this is quite tiresome...
+- 7.1.20
+- no, just sluggish mail handling...
+- bump release. the bs is broken now...
+
+* Sat Jan 28 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.18-1
++ Revision: 769530
+- fix deps
+- 7.1.18
+
+* Mon Aug 15 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.15-1
++ Revision: 694581
+- 7.1.15
+
+* Sat Jun 11 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.13-1
++ Revision: 684227
+- 7.1.13
+
+* Wed Mar 09 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.10-1
++ Revision: 643013
+- 7.1.10
+
+* Mon Jan 03 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.9a-2mdv2011.0
++ Revision: 627809
+- don't force the usage of automake1.7
+
+* Thu Dec 09 2010 Oden Eriksson <oeriksson@mandriva.com> 7.1.9a-1mdv2011.0
++ Revision: 618072
+- 7.1.9a
+- 7.1.8
+
+* Wed Aug 18 2010 Oden Eriksson <oeriksson@mandriva.com> 7.1.5-1mdv2011.0
++ Revision: 571170
+- 7.1.5
+
+* Wed May 26 2010 Oden Eriksson <oeriksson@mandriva.com> 7.1.3-1mdv2010.1
++ Revision: 546135
+- P101: security fix for CVE-2010-1621
+- P102: security fix for CVE-2010-1626
+- P103: security fix for CVE-2010-1850
+- P104: security fix for CVE-2010-1848
+- P105: security fix for CVE-2010-1849
+- package the java crap
+
+* Wed Apr 14 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.13-1mdv2010.1
++ Revision: 534661
+- 7.0.13
+
+* Tue Apr 13 2010 Funda Wang <fwang@mandriva.org> 7.0.12-2mdv2010.1
++ Revision: 534179
+- rebuild
+
+* Mon Feb 22 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-1mdv2010.1
++ Revision: 509523
+- don't package mysql.info because of licensing issues
+
+* Mon Feb 22 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-0.0.3mdv2010.1
++ Revision: 509484
+- P100: security fox for CVE-2008-7247
+- P101: security fix for CVE-2009-4030
+
+* Tue Feb 16 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-0.0.2mdv2010.1
++ Revision: 506741
+- really make it work
+
+* Fri Feb 12 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-0.0.1mdv2010.1
++ Revision: 504934
+- disable the test suite for now
+- import mysql-cluster
+

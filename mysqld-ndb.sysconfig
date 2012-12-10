@@ -1,0 +1,5 @@
+# set the cluster directory
+NDB_CLUSTER_DIR="/var/lib/mysql-cluster"
+
+# set any other options here
+NDB_OPTIONS="--daemon"

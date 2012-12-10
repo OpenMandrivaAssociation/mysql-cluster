@@ -1,0 +1,8 @@
+
+# Use the Instance Manager by default. Set to "1" to use the old mysqld_safe script.
+use_mysqld_safe="1"
+
+# (oe) set TMPDIR and TMP environment variables
+TMPDIR="/var/tmp"
+TMP="${TMPDIR}"
+
