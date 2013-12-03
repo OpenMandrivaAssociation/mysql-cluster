@@ -1,0 +1,14 @@
+mysql 5.5's new cmake-based build scripts forgot about defining
+DEFAULT_HOME_ENV.  Upstream at http://bugs.mysql.com/bug.php?id=59280
+
+--- mysys/CMakeLists.txt	2011-04-11 12:44:01.000000000 +0200
++++ mysys/CMakeLists.txt.oden	2011-05-11 07:54:29.110467270 +0200
+@@ -64,6 +64,8 @@
+  SET(MYSYS_SOURCES ${MYSYS_SOURCES} my_lockmem.c)
+ ENDIF()
+ 
++ADD_DEFINITIONS( -DDEFAULT_HOME_ENV=MYSQL_HOME)
++
+ ADD_CONVENIENCE_LIBRARY(mysys ${MYSYS_SOURCES})
+ TARGET_LINK_LIBRARIES(mysys dbug strings ${ZLIB_LIBRARY} 
+  ${LIBNSL} ${LIBM} ${LIBRT})

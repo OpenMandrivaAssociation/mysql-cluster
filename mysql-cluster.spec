@@ -4,6 +4,7 @@
 %define Werror_cflags %nil
 %define _disable_ld_no_undefined 1
 
+%define _with_systemd 1
 #(ie. use with rpm --rebuild):
 #
 #	--with debug	Compile with debugging code
@@ -15,12 +16,6 @@
 %define build_debug 0
 %define build_test 0
 
-# commandline overrides:
-# rpm -ba|--rebuild --with 'xxx'
-%{?_with_debug: %{expand: %%define build_debug 1}}
-%{?_with_test: %{expand: %%define build_test 1}}
-%{?_without_test: %global build_test 0}
-
 %if %{build_debug}
 # disable build root strip policy
 %define __spec_install_post %{_libdir}/rpm/brp-compress || :
@@ -29,300 +24,317 @@
 %{expand:%%define optflags %{optflags} %([ ! $DEBUG ] && echo '-g3')}
 %endif
 
-%if %{build_debug}
-%define build_debug 1
-%endif
-
-%if %{build_test}
-%define build_test 1
-%endif
-
 %define _requires_exceptions perl(this)
 
-%define major 16
-%define libname %mklibname mysql_cluster %{major}
-
 %define muser	mysql
+%define major 18
+%define services_major 0
+%define services_minor 0.0
+%define mysqld_major 0
+%define mysqld_minor 0.1
 
-Summary:	MySQL - server with extended functionality
+%define libclient %mklibname mysqlclient-cluster %{major}
+%define libservices %mklibname mysqlservices-cluster %{services_major}
+%define libmysqld %mklibname mysqld-cluster %{mysqld_major}
+%define devname %mklibname -d mysql-cluster
+%define staticname %mklibname -d -s mysql-cluster
+
+Summary:	Version of MySQL with clustering support
 Name: 		mysql-cluster
-Version:	7.1.23
+Version:	7.3.3
 Release:	1
 Group:		Databases
-License:	GPL
-URL:		http://www.mysql.com
-Source0:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.1/mysql-cluster-gpl-%{version}.tar.gz
-Source1:	http://ftp.sunet.se/pub/unix/databases/relational/mysql/Downloads/MySQL-Cluster-7.1/mysql-cluster-gpl-%{version}.tar.gz.asc
-Source3:	mysqld.sysconfig
-Source4:	mysqld-ndbd.init
-Source5:	mysqld-ndb.sysconfig
-Source6:	mysqld-ndb_cpcd.init
-Source7:	mysqld-ndb_cpcd.sysconfig
-Source8:	mysqld-ndb_mgmd.init
-Source9:	mysqld-ndb_mgmd.sysconfig
-Source10:	config.ini
-Source11:	my.cnf
-Patch1:		mysql-install_script_mysqld_safe.diff
-Patch2:		mysql-lib64.diff
-Patch3:		mysql-5.0.15-noproc.diff
-Patch4:		mysql-mysqldumpslow_no_basedir.diff
-Patch6:		mysql-errno.patch
-Patch11:	mysql-logrotate.diff
-Patch12:	mysql-initscript.diff
-Patch14:	mysql-5.1.30-use_-avoid-version_for_plugins.diff
-Patch100:	mysql-cluster-gpl-7.0.12-CVE-2008-7247.diff
-Requires(post): rpm-helper
-Requires(preun): rpm-helper
-Requires(pre): rpm-helper
-Requires(postun): rpm-helper
-Requires(post): mysql-cluster-common = %{version}-%{release}
-Requires(preun): mysql-cluster-common = %{version}-%{release}
-Requires(post): mysql-cluster-client = %{version}-%{release}
-Requires(preun): mysql-cluster-client = %{version}-%{release}
-Requires(postun): mysql-cluster-common = %{version}-%{release}
-Requires(postun): mysql-cluster-client = %{version}-%{release}
-Requires:	mysql-cluster-common = %{version}-%{release}
-Requires:	mysql-cluster-client = %{version}-%{release}
-BuildRequires:	autoconf automake libtool
+License:	GPLv2
+Url:		http://www.mysql.com/
+# http://dev.mysql.com/downloads/cluster/
+Source0:	http://cdn.mysql.com/Downloads/MySQL-Cluster-%(echo %version |cut -d. -f1-2)/mysql-cluster-gpl-%{version}.tar.gz
+#Source1:	%{SOURCE0}.asc
+Source2:	mysqld.sysconfig
+Source3:	my.cnf
+Source4:	libmysql.version
+Source5:	mysqld.service
+Source6:	mysqld-prepare-db-dir
+Source7:	mysqld-wait-ready
+# fedora patches
+Patch1:		mysql-strmov.patch
+Patch2:		mysql-install-test.patch
+Patch3:		mysql-expired-certs.patch
+Patch5:		mysql-chain-certs.patch
+Patch10:	mysql-home.patch
+Patch11:	mysqld_safe-nowatch.patch
+# mandriva patches
+Patch100:	mysql-mysqldumpslow_no_basedir.diff
+Patch101:	mysql-logrotate.diff
+Patch102:	mysql-initscript.diff
+Patch103:	mysql_upgrade-exit-status.patch
+Patch104:	mysql-5.1.31-shebang.patch
+Patch105:	mysql-5.1.35-test-variables-big.patch
+Patch106:	mysql-5.1.36-hotcopy.patch
+Patch107:	mysql-install_db-quiet.patch
+Patch108:	mysql-5.5.9-INSTALL_INCLUDEDIR_borkfix.diff
+Patch109:	mysql-libify_libservices.patch
+Patch110:	mysql-5.6.14-mysqld_link.patch
 BuildRequires:	bison
-BuildRequires:	doxygen
-BuildRequires:	glibc-devel
-BuildRequires:	libstdc++-devel
-BuildRequires:	termcap-devel
-BuildRequires:	ncurses-devel
-BuildRequires:	openssl-devel
-BuildRequires:	python
-BuildRequires:	readline-devel
-BuildRequires:	tetex
-BuildRequires:	texinfo
-BuildRequires:	zlib-devel
+BuildRequires:	cmake
 BuildRequires:	dos2unix
+BuildRequires:	doxygen
+BuildRequires:	python
+BuildRequires:	systemd-units
+BuildRequires:	systemtap
+BuildRequires:	libaio-devel
+BuildRequires:	stdc++-devel
+BuildRequires:	readline-devel
 BuildRequires:	xfsprogs-devel
-BuildRequires:	java-1.6.0-openjdk-devel
-BuildConflicts:	edit-devel
-Conflicts:	mysql < 5.1.43
-Conflicts:	mysql-common-core < 5.1.43
-Conflicts:	mysql-max < 5.1.43
-Conflicts:	mysql-ndb-extra < 5.1.43
-Conflicts:	mysql-ndb-management < 5.1.43
-Conflicts:	mysql-ndb-storage < 5.1.43
-Conflicts:	mysql-ndb-tools < 5.1.43
+BuildRequires:	pkgconfig(ncursesw)
+BuildRequires:	pkgconfig(openssl)
+BuildRequires:	pkgconfig(zlib)
+BuildRequires:  wrap-devel
+BuildConflicts:	pkgconfig(libedit)
+Requires(post,preun,pre,postun):	rpm-helper
+# This basically turns into a metapkg
+Requires:	mysql-server >= %{version}-%{release}
+Requires:	mysql-client >= %{version}-%{release}
 
 %description
-The MySQL(TM) software delivers a very fast, multi-threaded, multi-user,
-and robust SQL (Structured Query Language) database server. MySQL Server
-is intended for mission-critical, heavy-load production systems as well
-as for embedding into mass-deployed software. MySQL is a trademark of
-MySQL AB.
+The MySQL(TM) software delivers a very fast, multi-threaded, multi-user, and
+robust SQL (Structured Query Language) database server. MySQL Server is
+intended for mission-critical, heavy-load production systems as well as for
+embedding into mass-deployed software. MySQL is a trademark of MySQL AB.
 
-The MySQL server binary supports features like transactional tables and more.
-You can use it as an alternate to MySQL basic server. The mysql server is
-compiled with the following storage engines:
+The mysql server is compiled with the following storage engines:
 
- - Ndbcluster Storage Engine interface
+ - InnoDB Storage Engine
  - Archive Storage Engine
  - CSV Storage Engine
  - Federated Storage Engine
  - User Defined Functions (UDFs).
  - Blackhole Storage Engine
  - Partition Storage Engine
+ - Perfschema Storage Engine
+
+%package	server
+Summary:	Server mysqld binary
+Group:		System/Servers
+Conflicts:	mysql < 5.1.39-3
+Conflicts:	mysql-max < 5.1.43
+# all pkgs needed b/c of cleanup reorg
+%rename %{name}-core
+%rename %{name}-common-core
+Requires:	mysql-common >= %{version}-%{release}
+Requires:	mysql-plugin >= %{version}-%{release}
+Requires(post,preun,pre,postun):	rpm-helper
+Obsoletes:	mysql-common < 5.5.25a-1
+
+%description  server
+The  mysqld server binary. For a full MySQL database server, install
+package 'mysql'.
 
 %package	common
-Summary:	MySQL - common files
+Summary:	Common files
 Group:		System/Servers
-Requires(post): rpm-helper
-Requires(preun): rpm-helper
-Requires(pre): rpm-helper
-Requires(postun): rpm-helper
-Requires(post): mysql-cluster-client = %{version}-%{release}
-Requires(preun): mysql-cluster-client = %{version}-%{release}
-Requires(post): perl-DBD-mysql
-Requires(preun): perl-DBD-mysql
-Requires:	mysql-cluster-client = %{version}-%{release}
-Requires:	perl-DBD-mysql
-Conflicts:	mysql-common < 5.1.43
+BuildArch:	noarch
+# all pkgs needed b/c of cleanup reorg
+Conflicts:	mysql < 5.5.25a-1
+Conflicts:	mysql-core < 5.5.25a-1
+Obsoletes:	mysql-common-core < 5.5.25a-1
 
 %description	common
 Common files for the MySQL(TM) database server.
 
-%package	client
-Summary:	MySQL - Client
+%package	plugin
+Summary:	Mysql Plugins
 Group:		Databases
-Requires(post): %{libname} = %{version}-%{release}
-Requires(preun): %{libname} = %{version}-%{release}
-Requires:	%{libname} = %{version}-%{release}
-Conflicts:	mysql-client < 5.1.43
+# all pkgs needed b/c of cleanup reorg
+Conflicts:	mysql < 5.5.25a-1
+
+%description	plugin
+This package contains the standard MySQL plugins.
+
+%package	client
+Summary:	Client
+Group:		Databases
+# all pkgs needed b/c of cleanup reorg
+Conflicts:	mysql-core < 5.5.25a-1
+Conflicts:	mysql-common < 5.5.25a-1
+Conflicts:	mysql-common-core < 5.5.25a-1
 
 %description	client
 This package contains the standard MySQL clients.
 
-%package -n	%{libname}
-Summary:	MySQL - Shared libraries
+%package	bench
+Summary:	Benchmarks and test system
+Group:		System/Servers
+Requires:	mysql-client >= %{version}-%{release}
+
+%description	bench
+This package contains MySQL benchmark scripts and data.
+
+%package -n	%{libclient}
+Summary:	Shared libraries
 Group:		System/Libraries
 
-%description -n	%{libname}
-This package contains the shared libraries (*.so*) which certain languages and
-applications need to dynamically load and use MySQL.
+%description -n	%{libclient}
+This package contains the shared %{name}client library.
 
-%package	java
-Summary:	MySQL - ClusterJ
-Group:		Development/Java
+%package -n	%{libservices}
+Summary:	Shared %{name}client library
+Group:		System/Libraries
 
-%description	java
-This package contains ClusterJ java components.
+%description -n	%{libservices}
+The libmysqlservices library provides access to the available services and
+dynamic plugins now must be linked against this library 
+(use the -lmysqlservices flag).
+
+%package -n	%{libmysqld}
+Summary:	Shared libraries
+Group:		System/Libraries
+
+%description -n	%{libmysqld}
+This package contains the shared %{name}d library so the MySQL server that can
+be embedded into a client application instead of running as a separate process.
+The API is identical for the embedded MySQL version and the client/server
+version.
+
+%package -n	%{devname}
+Summary:	Development header files and libraries
+Group:		Development/Other
+Requires:	%{libclient} = %{version}-%{release}
+Requires:	%{libmysqld} = %{version}-%{release}
+Requires:	%{libservices} = %{version}-%{release}
+# https://qa.mandriva.com/show_bug.cgi?id=64668
+Requires:	rpm-build
+Provides:	mysql-devel = %{version}-%{release}
+
+%description -n	%{devname}
+This package contains the development header files and libraries necessary to
+develop MySQL client applications.
+
+%package -n	%{staticname}
+Summary:	Static development libraries
+Group:		Development/Other
+Requires:	%{devname} >= %{version}-%{release}
+Provides:	mysql-static-devel = %{version}-%{release}
+
+%description -n	%{staticname}
+This package contains the static development libraries.
 
 %prep
+%setup -q -n %{name}-gpl-%{version}
 
-%setup -q -n mysql-cluster-gpl-%{version}
-%patch1 -p0
-%patch2 -p1
-%patch3 -p0 -b .noproc
-%patch4 -p0 -b .mysqldumpslow_no_basedir
-%patch6 -p0 -b .errno_as_defines
-%patch11 -p0 -b .logrotate
-%patch12 -p0 -b .initscript
-%patch14 -p1 -b .use_-avoid-version_for_plugins
+# fedora patches
+%patch1 -p1 -b .strmov
+%patch2 -p1 -b .install-test
+%patch3 -p1 -b .expired-certs
+%patch5 -p1 -b .chain-certs
+%patch10 -p0 -b .home
+%patch11 -p1 -b .nowatch
 
-%patch100 -p0 -b .CVE-2008-7247
-
-# fix annoyances
-perl -pi -e "s|AC_PROG_RANLIB|AC_PROG_LIBTOOL|g" configure*
-perl -pi -e "s|^MAX_C_OPTIMIZE.*|MAX_C_OPTIMIZE=\"\"|g" configure*
-perl -pi -e "s|^MAX_CXX_OPTIMIZE.*|MAX_CXX_OPTIMIZE=\"\"|g" configure*
+# mandriva patches
+%patch100 -p0 -b .mysqldumpslow_no_basedir
+%patch101 -p0 -b .logrotate
+%patch102 -p0 -b .initscript
+%patch103 -p1 -b .mysql_upgrade-exit-status
+%patch104 -p1 -b .shebang
+%patch105 -p0 -b .test-variables-big
+%patch106 -p0 -b .hotcopy
+%patch107 -p0 -b .install_db-quiet
+%patch108 -p0 -b .INSTALL_INCLUDEDIR_borkfix
+%patch109 -p0 -b .libify_libservices
+%patch110 -p1 -b .mysqld_link
 
 mkdir -p Mandriva
-cp %{SOURCE3} Mandriva/mysqld.sysconfig
-cp %{SOURCE4} Mandriva/mysqld-ndbd.init
-cp %{SOURCE5} Mandriva/mysqld-ndb.sysconfig
-cp %{SOURCE6} Mandriva/mysqld-ndb_cpcd.init
-cp %{SOURCE7} Mandriva/mysqld-ndb_cpcd.sysconfig
-cp %{SOURCE8} Mandriva/mysqld-ndb_mgmd.init
-cp %{SOURCE9} Mandriva/mysqld-ndb_mgmd.sysconfig
-cp %{SOURCE10} Mandriva/config.ini
-cp %{SOURCE11} Mandriva/my.cnf
+cp %{SOURCE2} Mandriva/mysqld.sysconfig
+cp %{SOURCE3} Mandriva/my.cnf
 
 # lib64 fix
 perl -pi -e "s|/usr/lib/|%{_libdir}/|g" Mandriva/my.cnf
 
-# fix libname clash, all the binaries will link to the new lib names likes mindless drones...
-find -type f -name "Makefile.*" | xargs perl -pi -e "s|libmysqlclient\.la|libmysqlclient_cluster\.la|g; \
-    s|libmysqlclient_r\.la|libmysqlclient_cluster_r\.la|g; \
-    s|libmysqlclient_la|libmysqlclient_cluster_la|g; \
-    s|libmysqlclient_r_la|libmysqlclient_cluster_r_la|g"
+# antiborker
+perl -pi -e "s|\@bindir\@|%{_bindir}|g" support-files/* scripts/*
+perl -pi -e "s|\@sbindir\@|%{_sbindir}|g" support-files/* scripts/*
+perl -pi -e "s|\@libexecdir\@|%{_sbindir}|g" support-files/* scripts/*
+perl -pi -e "s|\@localstatedir\@|/var/lib/mysql|g" support-files/* scripts/*
+perl -pi -e "s|^basedir=.*|basedir=%{_prefix}|g" support-files/* scripts/mysql_install_db*
+
+# this may be part of the problems with mysql-test
+# http://bugs.mysql.com/bug.php?id=52223
+#perl -pi -e "s|basedir/lib\b|basedir/%{_lib}\b|g" mysql-test/mysql-test-run.pl
+#perl -pi -e "s|basedir/lib/|basedir/%{_lib}/|g" mysql-test/mysql-test-run.pl
+
+# workaround for upstream bug #56342
+rm -f mysql-test/t/ssl_8k_key-master.opt
+
+# upstream has fallen down badly on symbol versioning, do it ourselves
+cp %{SOURCE4} libmysql/libmysql.version
 
 %build
-# Run aclocal in order to get an updated libtool.m4 in generated
-# configure script for "new" architectures (aka. x86_64, mips)
-#autoreconf --install --force
-#export WANT_AUTOCONF_2_5=1
-libtoolize --automake --copy --force; aclocal -I config/ac-macros; autoheader; automake --foreign --add-missing --copy; autoconf
-
 %serverbuild
-export CFLAGS="${CFLAGS:-%{optflags}}"
-export CXXFLAGS="${CXXFLAGS:-%{optflags}}"
-export FFLAGS="${FFLAGS:-%{optflags}}"
 
+# it does not work with -fPIE and someone added that to the serverbuild macro...
+CFLAGS=`echo $CFLAGS|sed -e 's|-fPIE||g'`
+CXXFLAGS=`echo $CXXFLAGS|sed -e 's|-fPIE||g'`
+
+CFLAGS="$CFLAGS -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # MySQL 4.1.10 definitely doesn't work under strict aliasing; also,
 # gcc 4.1 breaks MySQL 5.0.16 without -fwrapv
-export CFLAGS="$CFLAGS -fno-strict-aliasing -fwrapv"
-# extra C++ flags as per recommendations in mysql's INSTALL-SOURCE doc
-export CXXFLAGS="$CFLAGS -felide-constructors -fno-rtti -fno-exceptions"
+CFLAGS="$CFLAGS -fno-strict-aliasing -fwrapv"
+export CFLAGS CXXFLAGS
 
+%cmake \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+    -DINSTALL_SBINDIR=sbin \
+    -DMYSQL_DATADIR=/var/lib/mysql \
+    -DSYSCONFDIR=%{_sysconfdir} \
+    -DINSTALL_PLUGINDIR=%{_lib}/mysql/plugin \
+    -DINSTALL_MANDIR=share/man \
+    -DINSTALL_SHAREDIR=share/mysql \
+    -DINSTALL_LIBDIR=%{_lib} \
+    -DINSTALL_INCLUDEDIR=include/mysql \
+    -DINSTALL_INFODIR=share/info \
+    -DINSTALL_MYSQLDATADIR=/var/lib/mysql \
+    -DINSTALL_MYSQLTESTDIR=share/mysql/mysql-test \
+    -DINSTALL_SQLBENCHDIR=share/mysql \
+    -DINSTALL_SUPPORTFILESDIR=share/mysql \
+    -DINSTALL_MYSQLSHAREDIR=share/mysql \
+    -DMYSQL_UNIX_ADDR=/var/lib/mysql/mysql.sock \
+    -DWITH_READLINE=0 \
+    -DWITH_LIBEDIT=0 \
+    -DWITH_LIBWRAP=1 \
+    -DWITH_SSL=system \
+    -DWITH_ZLIB=system \
+    -DWITH_PIC=1 \
+    -DMYSQL_TCP_PORT=3306 \
+    -DEXTRA_CHARSETS=all \
+    -DENABLED_LOCAL_INFILE=1 \
+    -DENABLE_DTRACE=0 \
+    -DWITH_EMBEDDED_SERVER=1 \
+    -DMYSQL_USER=%{muser} \
 %if %{build_debug}
-CFLAGS="$CFLAGS -DUNIV_MUST_NOT_INLINE -DEXTRA_DEBUG -DFORCE_INIT_OF_VARS -DSAFEMALLOC -DPEDANTIC_SAFEMALLOC -DSAFE_MUTEX"
-%endif
-
-export PS='/bin/ps'
-export FIND_PROC='/bin/ps p $$PID'
-export KILL='/bin/kill'
-export CHECK_PID='/bin/kill -0 $$PID'
-
-%configure2_5x \
-    --prefix=/ \
-    --exec-prefix=%{_prefix} \
-    --libexecdir=%{_sbindir} \
-    --libdir=%{_libdir} \
-    --sysconfdir=%{_sysconfdir} \
-    --datadir=%{_datadir} \
-    --localstatedir=/var/lib/mysql \
-    --infodir=%{_infodir} \
-    --includedir=%{_includedir} \
-    --mandir=%{_mandir} \
-    --with-pic \
-    --with-extra-charsets=all \
-    --enable-assembler \
-    --enable-local-infile \
-    --enable-largefile=yes \
-    --without-readline \
-    --without-libwrap \
-    --with-ssl=%{_libdir} \
-    --with-big-tables \
-    --enable-thread-safe-client \
-    --with-fast-mutexes \
-%if %{build_debug}
-    --with-debug=full \
+    -DWITH_DEBUG=1 \
 %else
-    --without-debug \
+    -DWITH_DEBUG=0 \
 %endif
-    --with-mysqld-user=%{muser} \
-    --with-unix-socket-path=/var/lib/mysql/mysql.sock \
-    --enable-shared \
-    --with-comment='Mandriva Linux - MySQL Cluster Edition (GPL)' \
-    --with-plugins=ndbcluster \
-    --with-plugin-federated \
-    --with-big-tables \
-    --with-ndbcluster \
-    --with-ndb-shm \
-    --with-server-suffix="-cluster"
+    -DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
+    -DWITHOUT_NDBCLUSTER_STORAGE_ENGINE=1 \
+    -DWITHOUT_DAEMON_EXAMPLE=1 \
+    -DFEATURE_SET="community" \
+    -DCOMPILATION_COMMENT="%{distribution} - MySQL Community Edition (GPL)" \
+    -DLIBSERVICES_SOVERSION="%{services_major}" \
+    -DLIBSERVICES_VERSION="%{services_major}.%{services_minor}"
 
-%make benchdir_root=%{buildroot}%{_datadir}
+cp ../libmysql/libmysql.version libmysql/libmysql.version
 
-################################################################################
-# run the tests
-%if %{build_test}
-# disable failing tests
-#echo "mysql_client_test : Unstable test case, bug#12258" >> mysql-test/t/disabled.def
-#echo "openssl_1 : Unstable test case" >> mysql-test/t/disabled.def
-#echo "rpl_openssl : Unstable test case" >> mysql-test/t/disabled.def
-echo "rpl_trigger : Unstable test case" >> mysql-test/t/disabled.def
-echo "type_enum : Unstable test case" >> mysql-test/t/disabled.def
-echo "windows : For MS Windows only" >> mysql-test/t/disabled.def
-echo "ndb_restore_different_endian_data : does not pass" >> mysql-test/t/disabled.def
-# set some test env, should be free high random ports...
-#export MYSQL_TEST_MANAGER_PORT=9305
-#export MYSQL_TEST_MASTER_PORT=9306
-#export MYSQL_TEST_SLAVE_PORT=9308
-#export MYSQL_TEST_NDB_PORT=9350
-make check
-#make test
-#%ifnarch s390x
-#pushd mysql-test
-#    ./mysql-test-run.pl \
-#    --force \
-#    --timer \
-#    --master_port=$MYSQL_TEST_MASTER_PORT \
-#    --slave_port=$MYSQL_TEST_SLAVE_PORT \
-#    --ndbcluster_port=$MYSQL_TEST_NDB_PORT \
-#    --testcase-timeout=60 \
-#    --suite-timeout=120 || false
-#popd
-#%endif
-
-pushd mysql-test
-export LANG=C
-export LC_ALL=C
-export LANGUAGE=C
-    perl ./mysql-test-run.pl \
-    --timer \
-    --testcase-timeout=60 \
-    --suite-timeout=120 || false
-popd
-
-%endif
+%make
+# Upstream bug: http://bugs.mysql.com/68559
+mkdir libmysqld/work
+pushd libmysqld/work
+ar -x ../libmysqld.a
+gcc $CFLAGS $LDFLAGS -DEMBEDDED_LIBRARY -shared -Wl,-soname,libmysqld.so.%{mysqld_major} -o libmysqld.so.%{mysqld_major}.%{mysqld_minor} \
+	*.o \
+	-lpthread -laio -lcrypt -lssl -lcrypto -lz -lrt -lstdc++ -ldl -lm -lc
 
 %install 
-rm -rf %{buildroot}
-
 # don't fiddle with the initscript!
 export DONT_GPRINTIFY=1
 
@@ -332,41 +344,24 @@ export DONT_STRIP=1
 
 install -d %{buildroot}%{_sysconfdir}/sysconfig
 install -d %{buildroot}%{_initrddir}
-install -d %{buildroot}%{_var}/run/{mysqld,ndb_cpcd}
+install -d %{buildroot}%{_var}/run/mysqld
 install -d %{buildroot}%{_var}/log/mysqld
 install -d %{buildroot}/var/lib/mysql/{mysql,test}
-install -d %{buildroot}/var/lib/mysql-cluster
 
-%makeinstall_std benchdir_root=%{_datadir} testdir=%{_datadir}/mysql-test clusterjdir=%{_datadir}/mysql/java clusterj_apidir=%{_datadir}/mysql/java
-
-# nuke one useless plugin
-rm -f %{buildroot}%{_libdir}/mysql/plugin/ha_example*
-
-mv %{buildroot}%{_sbindir}/mysqld %{buildroot}%{_sbindir}/mysqld-cluster
+%makeinstall_std -C build
 
 # install init scripts
-install -m0755 support-files/mysql.server %{buildroot}%{_initrddir}/mysqld-cluster
-install -m0755 Mandriva/mysqld-ndbd.init %{buildroot}%{_initrddir}/mysqld-ndbd
-install -m0755 Mandriva/mysqld-ndb_cpcd.init %{buildroot}%{_initrddir}/mysqld-ndb_cpcd
-install -m0755 Mandriva/mysqld-ndb_mgmd.init %{buildroot}%{_initrddir}/mysqld-ndb_mgmd
-
-# fix status and subsys
-perl -pi -e 's/status mysqld\b/status mysqld-cluster/g;s,(/var/lock/subsys/mysqld\b),${1}-cluster,' %{buildroot}%{_initrddir}/mysqld-cluster
-
-# mysqld-cluster needs special treatment running under the instance manager...
-perl -pi -e "s|--default-mysqld-path=%{_sbindir}/mysqld|--default-mysqld-path=%{_sbindir}/mysqld-cluster|g"  %{buildroot}%{_initrddir}/mysqld-cluster
-perl -pi -e "s|--mysqld=mysqld|--mysqld=mysqld-cluster|g" %{buildroot}%{_initrddir}/mysqld-cluster
+install -m0755 build/support-files/mysql.server %{buildroot}%{_initrddir}/mysqld
 
 # install configuration files
 install -m0644 Mandriva/mysqld.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/mysqld
-install -m0644 Mandriva/mysqld-ndb.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/mysqld-ndbd
-install -m0644 Mandriva/mysqld-ndb_cpcd.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/mysqld-ndb_cpcd
-install -m0644 Mandriva/mysqld-ndb_mgmd.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/mysqld-ndb_mgmd
 install -m0644 Mandriva/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
-install -m0644 Mandriva/config.ini %{buildroot}/var/lib/mysql-cluster/config.ini
 
-# Fix libraries
-mv %{buildroot}%{_libdir}/mysql/lib*.* %{buildroot}%{_libdir}/
+# bork
+mv %{buildroot}%{_bindir}/mysqlaccess.conf %{buildroot}%{_sysconfdir}/
+chmod 644 %{buildroot}%{_sysconfdir}/mysqlaccess.conf
+mv %{buildroot}%{_prefix}/scripts/mysql_install_db %{buildroot}%{_bindir}/
+mv %{buildroot}%{_datadir}/mysql/aclocal %{buildroot}%{_datadir}/aclocal
 
 pushd %{buildroot}%{_bindir}
     ln -sf mysqlcheck mysqlrepair
@@ -374,49 +369,135 @@ pushd %{buildroot}%{_bindir}
     ln -sf mysqlcheck mysqloptimize
 popd
 
-# touch some files
-echo "#" > %{buildroot}%{_sysconfdir}/ndb_cpcd.conf
-echo "#" > %{buildroot}/var/lib/mysql/Ndb.cfg
+# nuke -Wl,--as-needed from the mysql_config file
+perl -pi -e "s|^ldflags=.*|ldflags=\'-rdynamic\'|g" %{buildroot}%{_bindir}/mysql_config
+
+# cmake generates some completely wacko references to -lprobes_mysql when
+# building with dtrace support.  Haven't found where to shut that off,
+# so resort to this blunt instrument.  While at it, let's not reference
+# libmysqlclient_r anymore either.
+sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
+	%{buildroot}%{_bindir}/mysql_config >mysql_config.tmp
+cp -f mysql_config.tmp %{buildroot}%{_bindir}/mysql_config
+chmod 755 %{buildroot}%{_bindir}/mysql_config
+
+# libmysqlclient_r is no more.  Upstream tries to replace it with symlinks
+# but that really doesn't work (wrong soname in particular).  We'll keep
+# just the devel libmysqlclient_r.so link, so that rebuilding without any
+# source change is enough to get rid of dependency on libmysqlclient_r.
+rm -f %{buildroot}%{_libdir}/libmysqlclient_r.so*
+ln -s libmysqlclient.so %{buildroot}%{_libdir}/libmysqlclient_r.so
+
+# mysql-test includes one executable that doesn't belong under /usr/share,
+# so move it and provide a symlink
+mv %{buildroot}%{_datadir}/mysql/mysql-test/lib/My/SafeProcess/my_safe_process %{buildroot}%{_bindir}
+ln -s %{_bindir}/my_safe_process %{buildroot}%{_datadir}/mysql/mysql-test/lib/My/SafeProcess/my_safe_process
+
+# Remove libmysqld.a, install libmysqld.so
+rm -f %{buildroot}%{_libdir}/libmysqld.a
+install -m 0755 build/libmysqld/work/libmysqld.so.%{mysqld_major}.%{mysqld_minor} %{buildroot}%{_libdir}/libmysqld.so.%{mysqld_major}.%{mysqld_minor}
+ln -s libmysqld.so.%{mysqld_major}.%{mysqld_minor} %{buildroot}%{_libdir}/libmysqld.so.%{mysqld_major}
+ln -s libmysqld.so.%{mysqld_major} %{buildroot}%{_libdir}/libmysqld.so
 
 # house cleaning
 rm -rf %{buildroot}%{_datadir}/info
-rm -f %{buildroot}%{_bindir}/make_win_src_distribution
+rm -f %{buildroot}%{_bindir}/client_test
 rm -f %{buildroot}%{_bindir}/make_win_binary_distribution
-rm -f %{buildroot}%{_datadir}/mysql/*.spec
-rm -f %{buildroot}%{_datadir}/mysql/postinstall
-rm -f %{buildroot}%{_datadir}/mysql/preinstall
+rm -f %{buildroot}%{_bindir}/make_win_src_distribution
+rm -f %{buildroot}%{_datadir}/mysql/binary-configure
+rm -f %{buildroot}%{_datadir}/mysql/config.huge.ini
+rm -f %{buildroot}%{_datadir}/mysql/config.medium.ini
+rm -f %{buildroot}%{_datadir}/mysql/config.small.ini
+rm -f %{buildroot}%{_datadir}/mysql/mysqld_multi.server
 rm -f %{buildroot}%{_datadir}/mysql/mysql-log-rotate
 rm -f %{buildroot}%{_datadir}/mysql/mysql.server
-rm -f %{buildroot}%{_datadir}/mysql/mysqld_multi.server
-rm -f %{buildroot}%{_bindir}/client_test
-#rm -f %{buildroot}%{_bindir}/mysql_client_test*
-rm -f %{buildroot}%{_bindir}/mysqltest_embedded
 rm -f %{buildroot}%{_datadir}/mysql/binary-configure
 rm -f %{buildroot}%{_mandir}/man1/make_win_bin_dist.1*
 rm -f %{buildroot}%{_mandir}/man1/make_win_src_distribution.1*
-rm -f %{buildroot}%{_datadir}/mysql/ChangeLog
-rm -f %{buildroot}/mysql-test/lib/My/SafeProcess/my_safe_process
+rm -f %{buildroot}%{_datadir}/mysql/magic
+rm -f %{buildroot}%{_libdir}/mysql/plugin/daemon_example.ini
+rm -f %{buildroot}%{_bindir}/mysql_embedded
+rm -rf %{buildroot}%{_datadir}/mysql/solaris
 
-rm -f %{buildroot}%{_bindir}/mysql_config
-rm -rf %{buildroot}%{_includedir}/mysql
-rm -f %{buildroot}%{_libdir}/mysql/plugin/*.*a
-rm -f %{buildroot}%{_libdir}/mysql/*.*a
-rm -f %{buildroot}%{_libdir}/*.*a
-rm -f %{buildroot}%{_libdir}/*.so
-rm -f %{buildroot}%{_datadir}/aclocal/mysql.m4
-rm -rf %{buildroot}%{_datadir}/sql-bench
-rm -rf %{buildroot}%{_datadir}/mysql-test
-rm -f %{buildroot}%{_bindir}/mysql_client_test
-rm -f %{buildroot}%{_mandir}/man1/comp_err.1*
-rm -f %{buildroot}%{_mandir}/man1/mysql_config.1*
-rm -f %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
-rm -f %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
-rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
-rm -f %{buildroot}%{_mandir}/man1/mysql_client_test_embedded.1*
-rm -f %{buildroot}%{_mandir}/man1/mysqltest.1*
-rm -f %{buildroot}%{_mandir}/man1/mysqltest_embedded.1*
+# no idea how to fix this
+rm -rf %{buildroot}%{_prefix}/data
+rm -rf %{buildroot}%{_prefix}/docs
+rm -rf %{buildroot}%{_prefix}/scripts
+rm -f %{buildroot}%{_prefix}/COPYING
+rm -f %{buildroot}%{_prefix}/INSTALL-BINARY
+rm -f %{buildroot}%{_prefix}/README
 
-%pre common
+%multiarch_binaries %{buildroot}%{_bindir}/mysql_config
+
+%multiarch_includes %{buildroot}%{_includedir}/mysql/my_config.h
+
+%if %{_with_systemd}
+	# systemd
+	mkdir -p %{buildroot}/lib/systemd/system
+	install -m644 %{SOURCE5} %{buildroot}%{_systemunitdir}
+	install -m 755 %{SOURCE6} %{buildroot}%{_bindir}/
+	install -m 755 %{SOURCE7} %{buildroot}%{_bindir}/
+%endif
+cat > README.urpmi <<EOF
+
+The initscript used to start mysql has been reverted to use the one shipped
+by MySQL AB. This means the following changes:
+
+ * The generation of the initial system mysql database is now done when mysql
+   is started from the initscript and only if the /var/lib/mysql/mysql
+   directory is empty (mysql_install_db). Previousely this was quite hidden and
+   silently done at (rpm) install time. As a consequence to this change you may
+   have to perform some manual tasks to upgrade the mysql system database and
+   such. So, doing something like this might help you:
+
+   /etc/rc.d/init.d/mysqld stop
+   TMPDIR=/var/tmp mysql_install_db
+   mysql_upgrade
+
+The cluster functionalities (ndb) has been deactivated and will be removed in
+future mysql versions. A new product named mysql-cluster has been added (in
+contrib) that replaces the cluster functionalities.
+
+The mysql-common-core package ships with a default /etc/my.cnf file that is 
+based on the my-medium.cnf file that comes with the source code.
+
+Starting from mysql-5.1.43-2 the storage engines is built as dynamically
+loadable modules. You can either load the engines using the /etc/my.cnf file or
+at runtime. Please look at these lines in the /etc/my.cnf file to enable
+additional engines or disable one or more of the default ones:
+
+plugin_dir=%{_libdir}/mysql/plugin
+plugin-load=ha_archive.so;ha_blackhole.so;ha_federated.so
+
+Starting from mysql-5.1.44-3 the html documentation and the mysql.info is not
+shipped with the %{distribution} packages due to strict licensing.
+
+EOF
+
+################################################################################
+# run the tests
+%if %{build_test}
+# disable failing tests
+echo "rpl_trigger : Unstable test case" >> mysql-test/t/disabled.def
+echo "type_enum : Unstable test case" >> mysql-test/t/disabled.def
+echo "windows : For MS Windows only" >> mysql-test/t/disabled.def
+pushd build/mysql-test
+export LANG=C
+export LC_ALL=C
+export LANGUAGE=C
+    perl ./mysql-test-run.pl \
+    --mtr-build-thread="$((${RANDOM} % 100))" \
+    --skip-ndb \
+    --timer \
+    --retry=0 \
+    --ssl \
+    --mysqld=--binlog-format=mixed \
+    --testcase-timeout=60 \
+    --suite-timeout=120 || false
+popd
+%endif
+
+%pre server
 # delete the mysql group if no mysql user is found, before adding the user
 if [ -z "`getent passwd %{muser}`" ] && ! [ -z "`getent group %{muser}`" ]; then
     %{_sbindir}/groupdel %{muser} 2> /dev/null || :
@@ -424,7 +505,7 @@ fi
 
 %_pre_useradd %{muser} /var/lib/mysql /bin/bash
 
-%post
+%post server
 # Change permissions so that the user that will run the MySQL daemon
 # owns all needed files.
 chown -R %{muser}:%{muser} /var/lib/mysql /var/run/mysqld /var/log/mysqld
@@ -432,187 +513,175 @@ chown -R %{muser}:%{muser} /var/lib/mysql /var/run/mysqld /var/log/mysqld
 # make sure the /var/lib/mysql directory can be accessed
 chmod 711 /var/lib/mysql
 
-%_post_service mysqld-cluster
-%_post_service mysqld-ndbd
-%create_ghostfile %{_sysconfdir}/ndb_cpcd.conf root root 0644
-%create_ghostfile /var/lib/mysql/Ndb.cfg root root 0644
-%_post_service mysqld-ndb_cpcd
-%_post_service mysqld-ndb_mgmd
+%_post_service mysqld mysqld.service
 
-%preun
-%_preun_service mysqld-cluster
-%_preun_service mysqld-ndbd
-%_preun_service mysqld-ndb_cpcd
-%_preun_service mysqld-ndb_mgmd
+%preun server
+%_preun_service mysqld mysqld.service
 
-%postun
-if [ "$1" = "0" ]; then
-    if [ -f /var/lock/subsys/mysqld-cluster ]; then
-        %{_initrddir}/mysqld-cluster restart > /dev/null 2>/dev/null || :
+%postun server
+%_postun_unit mysqld.service
 
-    fi
-
-    if [ -f /var/lock/subsys/mysqld-ndbd ]; then
-        %{_initrddir}/mysqld-ndbd restart > /dev/null 2>/dev/null || :
-    fi
-
-    if [ -f /var/lock/subsys/mysqld-ndb_cpcd ]; then
-        %{_initrddir}/mysqld-ndb_cpcd restart > /dev/null 2>/dev/null || :
-    fi
-
-    if [ -f /var/lock/subsys/mysqld-ndb_mgmd ]; then
-        %{_initrddir}/mysqld-ndb_mgmd restart > /dev/null 2>/dev/null || :
-    fi
+%pre common
+# enable plugins
+if [ -f %{_sysconfdir}/my.cnf ]; then
+    perl -pi -e "s|^#plugin-load|plugin-load|g" %{_sysconfdir}/my.cnf
+    perl -pi -e "s|^#federated|federated|g" %{_sysconfdir}/my.cnf
 fi
 
+%triggerun -- %{name} < 5.5.24-1
+%_systemd_migrate_service_pre %{name} %{name}d.service
+
+%triggerpostun -- %{name} < 5.5.24-1
+%_systemd_migrate_service_post %{name} %{name}d.service
+
 %files
-%attr(0755,root,root) %{_initrddir}/mysqld-cluster
-%attr(0755,root,root) %{_sbindir}/mysqld-cluster
-%attr(0755,root,root) %{_sbindir}/mysqlmanager
+# metapkg
+
+%files plugin
 %dir %{_libdir}/mysql/plugin
-%attr(0755,root,root) %{_libdir}/mysql/plugin/ha_archive.so
-%attr(0755,root,root) %{_libdir}/mysql/plugin/ha_blackhole.so
-%attr(0755,root,root) %{_libdir}/mysql/plugin/ha_innodb.so
-%attr(0755,root,root) %{_libdir}/mysql/plugin/ha_innodb_plugin.so
-%attr(0755,root,root) %{_initrddir}/mysqld-ndbd
-%attr(0644,root,root) %config(noreplace,missingok) %{_sysconfdir}/sysconfig/mysqld-ndbd
-%attr(0755,root,root) %{_sbindir}/ndbd
-%attr(0755,root,root) %{_sbindir}/ndbmtd
-%ghost %attr(0644,root,root) %config(noreplace,missingok) %{_sysconfdir}/ndb_cpcd.conf
-%ghost %attr(0644,root,root) %config(noreplace,missingok) /var/lib/mysql/Ndb.cfg
-%attr(0644,root,root) %config(noreplace,missingok) /var/lib/mysql-cluster/config.ini
-%attr(0644,root,root) %config(noreplace,missingok) %{_sysconfdir}/sysconfig/mysqld-ndb_cpcd
-%attr(0644,root,root) %config(noreplace,missingok) %{_sysconfdir}/sysconfig/mysqld-ndb_mgmd
-%attr(0755,root,root) %{_initrddir}/mysqld-ndb_cpcd
-%attr(0755,root,root) %{_initrddir}/mysqld-ndb_mgmd
-%attr(0755,root,root) %{_sbindir}/ndb_mgmd
-%attr(0755,root,root) %{_sbindir}/ndb_cpcd
-%attr(0755,%{muser},%{muser}) %dir %{_var}/run/ndb_cpcd
-%attr(0755,root,root) %{_bindir}/ndb_blob_tool
-%attr(0755,root,root) %{_bindir}/ndb_config
-%attr(0755,root,root) %{_bindir}/ndb_delete_all
-%attr(0755,root,root) %{_bindir}/ndb_desc
-%attr(0755,root,root) %{_bindir}/ndbd_redo_log_reader
-%attr(0755,root,root) %{_bindir}/ndb_drop_index
-%attr(0755,root,root) %{_bindir}/ndb_drop_table
-%attr(0755,root,root) %{_bindir}/ndb_error_reporter
-%attr(0755,root,root) %{_bindir}/ndb_index_stat
-%attr(0755,root,root) %{_bindir}/ndbinfo_select_all
-%attr(0755,root,root) %{_bindir}/ndb_mgm
-%attr(0755,root,root) %{_bindir}/ndb_print_backup_file
-%attr(0755,root,root) %{_bindir}/ndb_print_file
-%attr(0755,root,root) %{_bindir}/ndb_print_schema_file
-%attr(0755,root,root) %{_bindir}/ndb_print_sys_file
-%attr(0755,root,root) %{_bindir}/ndb_restore
-%attr(0755,root,root) %{_bindir}/ndb_select_all
-%attr(0755,root,root) %{_bindir}/ndb_select_count
-%attr(0755,root,root) %{_bindir}/ndb_show_tables
-%attr(0755,root,root) %{_bindir}/ndb_size.pl
-%attr(0755,root,root) %{_bindir}/ndb_test_platform
-%attr(0755,root,root) %{_bindir}/ndb_waiter
-%attr(0644,root,root) %{_mandir}/man1/ndb-common-options.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_config.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_cpcd.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_delete_all.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_desc.1*
-%attr(0644,root,root) %{_mandir}/man1/ndbd_redo_log_reader.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_drop_index.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_drop_table.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_error_reporter.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_index_stat.1*
-%attr(0644,root,root) %{_mandir}/man1/ndbinfo_select_all.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_mgm.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_print_backup_file.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_print_schema_file.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_print_sys_file.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_restore.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_select_all.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_select_count.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_show_tables.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_size.pl.1*
-%attr(0644,root,root) %{_mandir}/man1/ndb_waiter.1*
-%attr(0644,root,root) %{_mandir}/man8/ndbd.8*
-%attr(0644,root,root) %{_mandir}/man8/ndb_mgmd.8*
-%attr(0644,root,root) %{_mandir}/man8/ndbmtd.8*
+%{_libdir}/mysql/plugin/adt_null.so
+%{_libdir}/mysql/plugin/auth.so
+%{_libdir}/mysql/plugin/auth_socket.so
+%{_libdir}/mysql/plugin/auth_test_plugin.so
+%{_libdir}/mysql/plugin/mypluglib.so
+%{_libdir}/mysql/plugin/qa_auth_client.so
+%{_libdir}/mysql/plugin/qa_auth_interface.so
+%{_libdir}/mysql/plugin/qa_auth_server.so
+%{_libdir}/mysql/plugin/semisync_master.so
+%{_libdir}/mysql/plugin/semisync_slave.so
+%{_libdir}/mysql/plugin/validate_password.so
 
 %files client
-%attr(0755,root,root) %{_bindir}/msql2mysql
-%attr(0755,root,root) %{_bindir}/mysql
-%attr(0755,root,root) %{_bindir}/mysqlaccess
-%attr(0755,root,root) %{_bindir}/mysqladmin
-%attr(0755,root,root) %{_bindir}/mysqlanalyze
-%attr(0755,root,root) %{_bindir}/mysqlbinlog
-%attr(0755,root,root) %{_bindir}/mysqlcheck
-%attr(0755,root,root) %{_bindir}/mysqldump
-%attr(0755,root,root) %{_bindir}/mysqldumpslow
-%attr(0755,root,root) %{_bindir}/mysql_find_rows
-%attr(0755,root,root) %{_bindir}/mysqlimport
-%attr(0755,root,root) %{_bindir}/mysqloptimize
-%attr(0755,root,root) %{_bindir}/mysqlrepair
-%attr(0755,root,root) %{_bindir}/mysqlshow
-%attr(0755,root,root) %{_bindir}/mysqlslap
-%attr(0755,root,root) %{_bindir}/mysql_waitpid
-%attr(0644,root,root) %{_mandir}/man1/msql2mysql.1*
-%attr(0644,root,root) %{_mandir}/man1/myisam_ftdump.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlaccess.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqladmin.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlbinlog.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlcheck.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqldump.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqldumpslow.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_find_rows.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlimport.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlshow.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_waitpid.1*
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/mysqlaccess.conf
+%{_bindir}/msql2mysql
+%{_bindir}/mysql
+%{_bindir}/mysqlaccess
+%{_bindir}/mysqladmin
+%{_bindir}/mysqlanalyze
+%{_bindir}/mysqlbinlog
+%{_bindir}/mysqlcheck
+%{_bindir}/mysql_config_editor
+%{_bindir}/mysqldump
+%{_bindir}/mysqldumpslow
+%{_bindir}/mysql_find_rows
+%{_bindir}/mysqlimport
+%{_bindir}/mysqloptimize
+%{_bindir}/mysqlrepair
+%{_bindir}/mysqlshow
+%{_bindir}/mysqlslap
+%{_bindir}/mysql_waitpid
+%{_bindir}/my_print_defaults
+%{_mandir}/man1/msql2mysql.1*
+%{_mandir}/man1/myisam_ftdump.1*
+%{_mandir}/man1/mysql.1*
+%{_mandir}/man1/mysqlaccess.1*
+%{_mandir}/man1/mysqladmin.1*
+%{_mandir}/man1/mysqlbinlog.1*
+%{_mandir}/man1/mysqlcheck.1*
+%{_mandir}/man1/mysqldump.1*
+%{_mandir}/man1/mysqldumpslow.1*
+%{_mandir}/man1/mysql_find_rows.1*
+%{_mandir}/man1/mysqlimport.1*
+%{_mandir}/man1/mysqlshow.1*
+%{_mandir}/man1/mysql_waitpid.1*
+%{_mandir}/man1/my_print_defaults.1*
+%{_mandir}/man1/mysql_config_editor.1*
+%{_mandir}/man1/ndb*.1*
+%{_mandir}/man8/ndb*.8*
 
-%files common
-%doc README COPYING support-files/*.cnf
+%files bench
+%doc build/sql-bench/README
+%{_bindir}/my_safe_process
+%{_bindir}/mysql_client_test
+%{_bindir}/mysql_client_test_embedded
+%{_bindir}/mysqltest_embedded
+%{_datadir}/mysql/sql-bench
+%attr(-,mysql,mysql) %{_datadir}/mysql/mysql-test
+%{_mandir}/man1/mysql-stress-test.pl.1*
+%{_mandir}/man1/mysql-test-run.pl.1*
+%{_mandir}/man1/mysql_client_test.1*
+%{_mandir}/man1/mysql_client_test_embedded.1*
+%{_mandir}/man1/mysqltest.1*
+%{_mandir}/man1/mysqltest_embedded.1*
+
+%files server
+%doc README.urpmi
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/sysconfig/mysqld
-%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/my.cnf
-%attr(0755,root,root) %{_bindir}/innochecksum
-%attr(0755,root,root) %{_bindir}/myisamchk
-%attr(0755,root,root) %{_bindir}/myisam_ftdump
-%attr(0755,root,root) %{_bindir}/myisamlog
-%attr(0755,root,root) %{_bindir}/myisampack
-%attr(0755,root,root) %{_bindir}/my_print_defaults
-%attr(0755,root,root) %{_bindir}/mysqlbug
-%attr(0755,root,root) %{_bindir}/mysql_convert_table_format
-%attr(0755,root,root) %{_bindir}/mysqld_multi
-%attr(0755,root,root) %{_bindir}/mysqld_safe
-%attr(0755,root,root) %{_bindir}/mysql_fix_extensions 
-%attr(0755,root,root) %{_bindir}/mysql_fix_privilege_tables
-%attr(0755,root,root) %{_bindir}/mysqlhotcopy
-%attr(0755,root,root) %{_bindir}/mysql_install_db
-%attr(0755,root,root) %{_bindir}/mysql_secure_installation
-%attr(0755,root,root) %{_bindir}/mysql_setpermission
-%attr(0755,root,root) %{_bindir}/mysqltest
-%attr(0755,root,root) %{_bindir}/mysql_tzinfo_to_sql
-%attr(0755,root,root) %{_bindir}/mysql_upgrade
-%attr(0755,root,root) %{_bindir}/mysql_zap
-%attr(0755,root,root) %{_bindir}/perror
-%attr(0755,root,root) %{_bindir}/replace
-%attr(0755,root,root) %{_bindir}/resolveip
-%attr(0755,root,root) %{_bindir}/resolve_stack_dump
-%attr(0711,%{muser},%{muser}) %dir /var/lib/mysql-cluster
+%{_initrddir}/mysqld
+%{_bindir}/innochecksum
+%{_bindir}/myisamchk
+%{_bindir}/myisam_ftdump
+%{_bindir}/myisamlog
+%{_bindir}/myisampack
+%{_bindir}/mysql_convert_table_format
+%{_bindir}/mysql_fix_extensions 
+%{_bindir}/mysqlbug
+%{_bindir}/mysqld_multi
+%{_bindir}/mysqld_safe
+%{_bindir}/mysqlhotcopy
+%{_bindir}/mysql_install_db
+%{_bindir}/mysql_plugin
+%{_bindir}/mysql_secure_installation
+%{_bindir}/mysql_setpermission
+%{_bindir}/mysqltest
+%{_bindir}/mysql_tzinfo_to_sql
+%{_bindir}/mysql_upgrade
+%{_bindir}/mysql_zap
+%{_bindir}/perror
+%{_bindir}/replace
+%{_bindir}/resolveip
+%{_bindir}/resolve_stack_dump
+%{_sbindir}/mysqld
 %attr(0711,%{muser},%{muser}) %dir /var/lib/mysql
 %attr(0711,%{muser},%{muser}) %dir /var/lib/mysql/mysql
 %attr(0711,%{muser},%{muser}) %dir /var/lib/mysql/test
 %attr(0755,%{muser},%{muser}) %dir %{_var}/run/mysqld
 %attr(0755,%{muser},%{muser}) %dir %{_var}/log/mysqld
-%dir %{_datadir}/mysql
-%{_datadir}/mysql/ndbinfo.sql
-%{_datadir}/mysql/mi_test_all
-%{_datadir}/mysql/mi_test_all.res
 %{_datadir}/mysql/*.cnf
 %{_datadir}/mysql/fill_help_tables.sql
-%{_datadir}/mysql/mysql_fix_privilege_tables.sql
 %{_datadir}/mysql/mysql_system_tables.sql
 %{_datadir}/mysql/mysql_system_tables_data.sql
 %{_datadir}/mysql/mysql_test_data_timezone.sql
-%{_datadir}/mysql/*.ini
-%{_datadir}/mysql/errmsg.txt
+%{_datadir}/mysql/errmsg-utf8.txt
+%{_datadir}/mysql/dictionary.txt
+%{_datadir}/mysql/mysql_security_commands.sql
+%{_datadir}/mysql/innodb_memcached_config.sql
+%{_mandir}/man1/innochecksum.1*
+%{_mandir}/man1/myisamchk.1*
+%{_mandir}/man1/myisamlog.1*
+%{_mandir}/man1/myisampack.1*
+%{_mandir}/man1/mysqlbug.1*
+%{_mandir}/man1/mysql_convert_table_format.1*
+%{_mandir}/man1/mysqld_multi.1*
+%{_mandir}/man1/mysqld_safe.1*
+%{_mandir}/man1/mysql_fix_extensions.1*
+%{_mandir}/man1/mysqlhotcopy.1*
+%{_mandir}/man1/mysql_install_db.1*
+%{_mandir}/man1/mysqlman.1*
+%{_mandir}/man1/mysql_plugin.1*
+%{_mandir}/man1/mysql_secure_installation.1*
+%{_mandir}/man1/mysql.server.1*
+%{_mandir}/man1/mysql_setpermission.1*
+%{_mandir}/man1/mysqlslap.1*
+%{_mandir}/man1/mysql_tzinfo_to_sql.1*
+%{_mandir}/man1/mysql_upgrade.1*
+%{_mandir}/man1/mysql_zap.1*
+%{_mandir}/man1/perror.1*
+%{_mandir}/man1/replace.1*
+%{_mandir}/man1/resolveip.1*
+%{_mandir}/man1/resolve_stack_dump.1*
+%{_mandir}/man8/mysqld.8*
+
+%{_systemunitdir}/mysqld.service
+%{_bindir}/mysqld-prepare-db-dir
+%{_bindir}/mysqld-wait-ready
+
+%files common
+%doc README COPYING
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/my.cnf
+%dir %{_datadir}/mysql
 %{_datadir}/mysql/english
+%{_datadir}/mysql/bulgarian
 %{_datadir}/mysql/charsets
 %{_datadir}/mysql/czech
 %{_datadir}/mysql/danish
@@ -636,120 +705,35 @@ fi
 %{_datadir}/mysql/spanish
 %{_datadir}/mysql/swedish
 %{_datadir}/mysql/ukrainian
-%attr(0644,root,root) %{_mandir}/man1/innochecksum.1*
-%attr(0644,root,root) %{_mandir}/man1/myisamchk.1*
-%attr(0644,root,root) %{_mandir}/man1/myisamlog.1*
-%attr(0644,root,root) %{_mandir}/man1/myisampack.1*
-%attr(0644,root,root) %{_mandir}/man1/my_print_defaults.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlbug.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_convert_table_format.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqld_multi.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqld_safe.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_fix_extensions.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_fix_privilege_tables.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlhotcopy.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_install_db.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlman.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_secure_installation.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql.server.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_setpermission.1*
-%attr(0644,root,root) %{_mandir}/man1/mysqlslap.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_tzinfo_to_sql.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_upgrade.1*
-%attr(0644,root,root) %{_mandir}/man1/mysql_zap.1*
-%attr(0644,root,root) %{_mandir}/man1/perror.1*
-%attr(0644,root,root) %{_mandir}/man1/replace.1*
-%attr(0644,root,root) %{_mandir}/man1/resolveip.1*
-%attr(0644,root,root) %{_mandir}/man1/resolve_stack_dump.1*
-%attr(0644,root,root) %{_mandir}/man8/mysqld.8*
-%attr(0644,root,root) %{_mandir}/man8/mysqlmanager.8*
 
-%files java
-%{_datadir}/mysql/java
+%files -n %{libclient}
+%{_libdir}/libmysqlclient.so.%{major}*
 
-%files -n %{libname}
-%doc ChangeLog
-%attr(0755,root,root) %{_libdir}/*.so.*
+%files -n %{libservices}
+%{_libdir}/libmysqlservices.so.%{services_major}*
 
+%files -n %{libmysqld}
+%{_libdir}/libmysqld.so.%{mysqld_major}*
 
-%changelog
-* Fri Jul 27 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.23-1
-+ Revision: 811213
-- 7.1.23
+%files -n %{devname}
+%doc INSTALL-SOURCE
+%doc Docs/ChangeLog
+%{multiarch_bindir}/mysql_config
+%{_bindir}/mysql_config
+%{_libdir}/libmysqlclient_r.so
+%{_libdir}/libmysqlclient.so
+%{_libdir}/libmysqlservices.so
+%{_libdir}/libmysqld.so
+%dir %{_includedir}/mysql
+%dir %{_includedir}/mysql/psi
+%{_includedir}/mysql/*.h
+%{_includedir}/mysql/*.h.pp
+%{_includedir}/mysql/psi/*.h
+%{multiarch_includedir}/mysql/my_config.h
+%{_mandir}/man1/comp_err.1*
+%{_mandir}/man1/mysql_config.1*
+%{_datadir}/aclocal/mysql.m4
 
-* Tue Jun 19 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.22-1
-+ Revision: 806244
-- 7.1.22
-
-* Thu Apr 12 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.20-1
-+ Revision: 790381
-- stupid and useless renamed packages that won't provide the old package name/virtual name..., this is quite tiresome...
-- 7.1.20
-- no, just sluggish mail handling...
-- bump release. the bs is broken now...
-
-* Sat Jan 28 2012 Oden Eriksson <oeriksson@mandriva.com> 7.1.18-1
-+ Revision: 769530
-- fix deps
-- 7.1.18
-
-* Mon Aug 15 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.15-1
-+ Revision: 694581
-- 7.1.15
-
-* Sat Jun 11 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.13-1
-+ Revision: 684227
-- 7.1.13
-
-* Wed Mar 09 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.10-1
-+ Revision: 643013
-- 7.1.10
-
-* Mon Jan 03 2011 Oden Eriksson <oeriksson@mandriva.com> 7.1.9a-2mdv2011.0
-+ Revision: 627809
-- don't force the usage of automake1.7
-
-* Thu Dec 09 2010 Oden Eriksson <oeriksson@mandriva.com> 7.1.9a-1mdv2011.0
-+ Revision: 618072
-- 7.1.9a
-- 7.1.8
-
-* Wed Aug 18 2010 Oden Eriksson <oeriksson@mandriva.com> 7.1.5-1mdv2011.0
-+ Revision: 571170
-- 7.1.5
-
-* Wed May 26 2010 Oden Eriksson <oeriksson@mandriva.com> 7.1.3-1mdv2010.1
-+ Revision: 546135
-- P101: security fix for CVE-2010-1621
-- P102: security fix for CVE-2010-1626
-- P103: security fix for CVE-2010-1850
-- P104: security fix for CVE-2010-1848
-- P105: security fix for CVE-2010-1849
-- package the java crap
-
-* Wed Apr 14 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.13-1mdv2010.1
-+ Revision: 534661
-- 7.0.13
-
-* Tue Apr 13 2010 Funda Wang <fwang@mandriva.org> 7.0.12-2mdv2010.1
-+ Revision: 534179
-- rebuild
-
-* Mon Feb 22 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-1mdv2010.1
-+ Revision: 509523
-- don't package mysql.info because of licensing issues
-
-* Mon Feb 22 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-0.0.3mdv2010.1
-+ Revision: 509484
-- P100: security fox for CVE-2008-7247
-- P101: security fix for CVE-2009-4030
-
-* Tue Feb 16 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-0.0.2mdv2010.1
-+ Revision: 506741
-- really make it work
-
-* Fri Feb 12 2010 Oden Eriksson <oeriksson@mandriva.com> 7.0.12-0.0.1mdv2010.1
-+ Revision: 504934
-- disable the test suite for now
-- import mysql-cluster
+%files -n %{staticname}
+%{_libdir}/*.a
 

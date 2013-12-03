@@ -1,0 +1,26 @@
+diff -Naurp mysql-5.5.8/client/mysql_upgrade.c mysql-5.5.8.oden/client/mysql_upgrade.c
+--- mysql-5.5.8/client/mysql_upgrade.c	2010-12-03 18:58:26.000000000 +0100
++++ mysql-5.5.8.oden/client/mysql_upgrade.c	2010-12-27 13:39:27.150859394 +0100
+@@ -870,7 +870,9 @@ int main(int argc, char **argv)
+     printf("This installation of MySQL is already upgraded to %s, "
+            "use --force if you still need to run mysql_upgrade\n",
+            MYSQL_SERVER_VERSION);
+-    die(NULL);
++    free_used_memory();
++    my_end(MY_CHECK_ERROR);
++    exit(0);
+   }
+ 
+   if (opt_version_check && check_version_match())
+diff -Naurp mysql-5.5.8/mysql-test/t/mysql_upgrade.test mysql-5.5.8.oden/mysql-test/t/mysql_upgrade.test
+--- mysql-5.5.8/mysql-test/t/mysql_upgrade.test	2010-12-03 18:58:24.000000000 +0100
++++ mysql-5.5.8.oden/mysql-test/t/mysql_upgrade.test	2010-12-27 13:39:27.151859381 +0100
+@@ -13,7 +13,7 @@ file_exists $MYSQLD_DATADIR/mysql_upgrad
+ 
+ --echo Run it again - should say already completed
+ --replace_result $MYSQL_SERVER_VERSION VERSION
+---error 1
++--error 0
+ --exec $MYSQL_UPGRADE --skip-verbose 2>&1
+ 
+ # It should have created a file in the MySQL Servers datadir

@@ -1,6 +1,0 @@
-# set the cluster directory
-NDB_MGMD_CLUSTER_DIR="/var/lib/mysql-cluster"
-
-# set any other options here
-#NDB_MGMD_OPTIONS="--config-file /var/lib/mysql-cluster/config.ini"
-NDB_MGMD_OPTIONS="--daemon"

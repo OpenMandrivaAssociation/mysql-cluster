@@ -1,5 +1,0 @@
-# set the cluster directory
-NDB_CPCD_CLUSTER_DIR="/var/lib/mysql-cluster"
-
-# set any other options here
-NDB_CPCD_OPTIONS=""

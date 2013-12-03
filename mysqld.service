@@ -1,0 +1,44 @@
+# It's not recommended to modify this file in-place, because it will be
+# overwritten during package upgrades.  If you want to customize, the
+# best way is to create a file "/etc/systemd/system/mysqld.service",
+# containing
+#	.include /lib/systemd/system/mysqld.service
+#	...make your changes here...
+# For more info about custom unit files, see
+# http://fedoraproject.org/wiki/Systemd#How_do_I_customize_a_unit_file.2F_add_a_custom_unit_file.3F
+
+# For example, if you want to increase mysql's open-files-limit to 10000,
+# you need to increase systemd's LimitNOFILE setting, so create a file named
+# "/etc/systemd/system/mysqld.service" containing:
+#	.include /lib/systemd/system/mysqld.service
+#	[Service]
+#	LimitNOFILE=10000
+
+# Note: in F-17 and beyond, /usr/lib/... is recommended in the .include line
+# though /lib/... will still work.
+
+[Unit]
+Description=MySQL database server
+After=syslog.target
+After=network.target
+
+[Service]
+Type=forking
+User=mysql
+Group=mysql
+
+ExecStartPre=/usr/bin/mysqld-prepare-db-dir --basedir=/usr
+ExecStart=/usr/bin/mysqld_safe --nowatch --basedir=/usr
+ExecStartPost=/usr/bin/mysqld-wait-ready $MAINPID
+
+# Give a reasonable amount of time for the server to start up/shut down
+TimeoutSec=300
+
+# We rely on systemd, not mysqld_safe, to restart mysqld if it dies
+Restart=always
+
+# Place temp files in a secure directory, not /tmp
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+--- libservices/CMakeLists.txt	2011-03-09 15:11:38.000000000 +0000
++++ libservices/CMakeLists.txt.mikson	2011-03-19 16:08:30.690669003 +0000
+@@ -21,5 +21,10 @@ SET(MYSQLSERVICES_SOURCES
+   my_thread_scheduler_service.c
+   mysql_string_service.c)
+ 
+-ADD_LIBRARY(mysqlservices ${MYSQLSERVICES_SOURCES})
++ADD_LIBRARY(mysqlservices ${MYSQLSERVICES_SOURCES})
++SET_TARGET_PROPERTIES(mysqlservices PROPERTIES
++	OUTPUT_NAME "mysqlservices"
++	VERSION "${LIBSERVICES_VERSION}"
++	SOVERSION "${LIBSERVICES_SOVERSION}")
++
+ INSTALL(TARGETS mysqlservices DESTINATION ${INSTALL_LIBDIR} COMPONENT Development)
