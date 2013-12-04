@@ -92,8 +92,8 @@ BuildRequires:  wrap-devel
 BuildConflicts:	pkgconfig(libedit)
 Requires(post,preun,pre,postun):	rpm-helper
 # This basically turns into a metapkg
-Requires:	mysql-server >= %{version}-%{release}
-Requires:	mysql-client >= %{version}-%{release}
+Requires:	%{name}-server >= %{version}-%{release}
+Requires:	%{name}-client >= %{version}-%{release}
 
 %description
 The MySQL(TM) software delivers a very fast, multi-threaded, multi-user, and
@@ -120,8 +120,8 @@ Conflicts:	mysql-max < 5.1.43
 # all pkgs needed b/c of cleanup reorg
 %rename %{name}-core
 %rename %{name}-common-core
-Requires:	mysql-common >= %{version}-%{release}
-Requires:	mysql-plugin >= %{version}-%{release}
+Requires:	%{name}-common >= %{version}-%{release}
+Requires:	%{name}-plugin >= %{version}-%{release}
 Requires(post,preun,pre,postun):	rpm-helper
 Obsoletes:	mysql-common < 5.5.25a-1
 
@@ -164,7 +164,7 @@ This package contains the standard MySQL clients.
 %package	bench
 Summary:	Benchmarks and test system
 Group:		System/Servers
-Requires:	mysql-client >= %{version}-%{release}
+Requires:	%{name}-client >= %{version}-%{release}
 
 %description	bench
 This package contains MySQL benchmark scripts and data.
