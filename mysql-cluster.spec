@@ -34,6 +34,7 @@
 %define mysqld_minor 0.1
 
 %define libclient %mklibname mysqlclient-cluster %{major}
+%define libndbclient %mklibname ndbclient 6
 %define libservices %mklibname mysqlservices-cluster %{services_major}
 %define libmysqld %mklibname mysqld-cluster %{mysqld_major}
 %define devname %mklibname -d mysql-cluster
@@ -176,6 +177,13 @@ Group:		System/Libraries
 %description -n	%{libclient}
 This package contains the shared %{name}client library.
 
+%package -n	%{libndbclient}
+Summary:	NDB (Network DataBase) client library
+Group:		System/Libraries
+
+%description -n %{libndbclient}
+NDB (Network DataBase) client library
+
 %package -n	%{libservices}
 Summary:	Shared %{name}client library
 Group:		System/Libraries
@@ -199,6 +207,7 @@ version.
 Summary:	Development header files and libraries
 Group:		Development/Other
 Requires:	%{libclient} = %{version}-%{release}
+Requires:	%{libndbclient} = %{EVRD}
 Requires:	%{libmysqld} = %{version}-%{release}
 Requires:	%{libservices} = %{version}-%{release}
 # https://qa.mandriva.com/show_bug.cgi?id=64668
@@ -281,6 +290,8 @@ CFLAGS="$CFLAGS -fno-strict-aliasing -fwrapv"
 export CFLAGS CXXFLAGS
 
 %cmake \
+    -DBUILD_CONFIG=mysql_release \
+    -DINSTALL_LAYOUT=RPM \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX=%{_prefix} \
     -DINSTALL_SBINDIR=sbin \
@@ -316,7 +327,7 @@ export CFLAGS CXXFLAGS
     -DWITH_DEBUG=0 \
 %endif
     -DWITHOUT_EXAMPLE_STORAGE_ENGINE=1 \
-    -DWITHOUT_NDBCLUSTER_STORAGE_ENGINE=1 \
+    -DWITHOUT_NDBCLUSTER_STORAGE_ENGINE=0 \
     -DWITHOUT_DAEMON_EXAMPLE=1 \
     -DFEATURE_SET="community" \
     -DCOMPILATION_COMMENT="%{distribution} - MySQL Community Edition (GPL)" \
@@ -360,7 +371,6 @@ install -m0644 Mandriva/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 # bork
 mv %{buildroot}%{_bindir}/mysqlaccess.conf %{buildroot}%{_sysconfdir}/
 chmod 644 %{buildroot}%{_sysconfdir}/mysqlaccess.conf
-mv %{buildroot}%{_prefix}/scripts/mysql_install_db %{buildroot}%{_bindir}/
 mv %{buildroot}%{_datadir}/mysql/aclocal %{buildroot}%{_datadir}/aclocal
 
 pushd %{buildroot}%{_bindir}
@@ -676,6 +686,21 @@ fi
 %{_bindir}/mysqld-prepare-db-dir
 %{_bindir}/mysqld-wait-ready
 
+# ndb/cluster specific bits
+%{_bindir}/mcc_config.py
+%{_bindir}/memclient
+%{_bindir}/ndb*
+%{_datadir}/mysql/mcc
+%{_datadir}/mysql/memcache-api
+%{_datadir}/mysql/ndb_dist_priv.sql
+%{_datadir}/mysql/nodejs
+%{_libdir}/ndb_engine.so
+%{_sbindir}/memcached
+%{_sbindir}/ndb_mgmd
+%{_sbindir}/ndbd
+%{_sbindir}/ndbmtd
+%{_datadir}/mysql/java/clusterj*.jar
+
 %files common
 %doc README COPYING
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/my.cnf
@@ -709,6 +734,9 @@ fi
 %files -n %{libclient}
 %{_libdir}/libmysqlclient.so.%{major}*
 
+%files -n %{libndbclient}
+%{_libdir}/libndbclient.so.6*
+
 %files -n %{libservices}
 %{_libdir}/libmysqlservices.so.%{services_major}*
 
@@ -733,6 +761,11 @@ fi
 %{_mandir}/man1/comp_err.1*
 %{_mandir}/man1/mysql_config.1*
 %{_datadir}/aclocal/mysql.m4
+
+# ndb/cluster specific bits
+%dir %{_includedir}/mysql/storage
+%{_includedir}/mysql/storage/ndb
+%{_libdir}/libndbclient.so
 
 %files -n %{staticname}
 %{_libdir}/*.a
