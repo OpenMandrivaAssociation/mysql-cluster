@@ -90,6 +90,7 @@ BuildRequires:	pkgconfig(ncursesw)
 BuildRequires:	pkgconfig(openssl)
 BuildRequires:	pkgconfig(zlib)
 BuildRequires:  wrap-devel
+BuildRequires:	java-1.7.0-openjdk-devel
 BuildConflicts:	pkgconfig(libedit)
 Requires(post,preun,pre,postun):	rpm-helper
 # This basically turns into a metapkg
