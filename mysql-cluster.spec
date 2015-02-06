@@ -43,7 +43,7 @@
 Summary:	Version of MySQL with clustering support
 Name: 		mysql-cluster
 Version:	7.3.3
-Release:	1
+Release:	2
 Group:		Databases
 License:	GPLv2
 Url:		http://www.mysql.com/
