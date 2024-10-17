@@ -46,7 +46,7 @@ Version:	7.3.3
 Release:	2
 Group:		Databases
 License:	GPLv2
-Url:		http://www.mysql.com/
+Url:		https://www.mysql.com/
 # http://dev.mysql.com/downloads/cluster/
 Source0:	http://cdn.mysql.com/Downloads/MySQL-Cluster-%(echo %version |cut -d. -f1-2)/mysql-cluster-gpl-%{version}.tar.gz
 #Source1:	%{SOURCE0}.asc
